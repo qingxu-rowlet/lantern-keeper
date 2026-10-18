@@ -8,6 +8,12 @@ Open `index.html` in any modern browser. Everything lives in that one file; the 
 
 On iPhone: open the GitHub Pages link in Safari, tap **Share → Add to Home Screen**, and the game launches full-screen like an app.
 
+## Features in this version
+
+- **English / 中文:** tap the 中 / EN button at the top to switch the whole game, story included. The choice is remembered.
+- **Beginner tutorial:** new players get a short guided fight. It can be replayed from the start screen.
+- **Second chance:** once per fight, take a 15-second break with a cat or dog clip or a music video (The Weeknd, BTS, NewJeans) to revive with half HP. In trials it gives 5 extra moves. Free, no ads: the clips are official YouTube embeds.
+
 ## How it plays
 
 - **Match tiles to act.** Firecrackers attack, jade shields, peaches heal, joss gold gives coins and chi, bells exorcise enemy marks.

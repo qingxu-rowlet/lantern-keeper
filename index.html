@@ -15,7 +15,7 @@
 <title>The Lantern Keeper</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@500;700;800&display=swap">
 <style>
 /* Layout: one narrow column, Ghost Festival night. Lantern path strip, arena, lacquer board, booster tray. Deliberately single dark theme. */
 :root{
@@ -139,6 +139,26 @@ h1{font-family:var(--brush); font-weight:400; font-size:2rem; margin:0; color:va
 @keyframes wiggle{0%,70%,100%{transform:rotate(0)}78%{transform:rotate(-3deg)}86%{transform:rotate(3deg)}94%{transform:rotate(-1deg)}}
 .log{margin:0; text-align:center; font-weight:700; min-height:2.7em; font-size:.84rem; line-height:1.4; text-wrap:balance}
 .card.passive{cursor:default; padding-block:6px}
+.lang-btn{font-family:var(--brush); font-size:1rem}
+:root[lang="zh-Hans"] .brand-en{display:none}
+:root[lang="zh-Hans"] body{font-family:"Noto Sans SC",var(--body)}
+.coach{position:fixed; z-index:8; left:50%; transform:translateX(-50%); bottom:max(14px, env(safe-area-inset-bottom, 0px)); width:min(440px, calc(100% - 24px));
+  background:linear-gradient(180deg,#2f2740,#221c2e); border:1.5px solid var(--gold); border-radius:18px; padding:12px 14px 14px; box-shadow:0 0 30px rgba(240,184,74,.25), 0 14px 40px rgba(0,0,0,.6);
+  display:flex; flex-direction:column; gap:8px; animation:popIn .3s cubic-bezier(.3,1.5,.6,1)}
+.coach.top{bottom:auto; top:max(14px, env(safe-area-inset-top, 0px))}
+.coach p{margin:0; font-size:.9rem; line-height:1.5; font-weight:700}
+.coach .btn{align-self:flex-end; padding:7px 18px; font-size:1rem}
+.coach-head{display:flex; justify-content:space-between; align-items:center}
+.coach-skip{background:none; border:none; color:var(--ink-soft); font-size:.75rem; font-weight:800; cursor:pointer; text-decoration:underline}
+.coach-target{position:relative; z-index:7; box-shadow:0 0 0 3px var(--gold), 0 0 24px rgba(240,184,74,.55) !important; border-radius:16px}
+.clip-overlay{z-index:12}
+.clip-modal{max-width:420px}
+.clip-box{width:100%; aspect-ratio:16/9; max-width:100%; border-radius:12px; overflow:hidden; background:#0c0a10; display:grid; place-items:center}
+.clip-box iframe{width:100%; height:100%; border:0}
+.clip-box canvas{width:140px; height:140px}
+.clip-note{font-size:.8rem !important; color:var(--ink-soft) !important}
+.clip-link{color:var(--gold); font-size:.8rem; font-weight:800}
+.btn:disabled{opacity:.55; cursor:not-allowed}
 .modal .cicon{flex:none; width:40px; height:40px; border-radius:0; background:none}
 .legend{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(5,1fr); gap:4px}
 .legend li{display:flex; flex-direction:column; align-items:center; gap:1px; font-size:.63rem; text-align:center; line-height:1.25; color:var(--ink-soft); font-weight:700}
@@ -189,8 +209,7 @@ h1{font-family:var(--brush); font-weight:400; font-size:2rem; margin:0; color:va
   .intent.soon,.palm.ready,.shake,.lunge,.hop,.modal,.lamp.now{animation:none}
   .float{animation-duration:1.4s}
 }
-
-/* Standalone / iPhone additions */
+/* Phone layout */
 @media (max-width: 430px){
   .brand-en{display:none}
   h1{font-size:1.7rem}
@@ -215,6 +234,7 @@ h1{font-family:var(--brush); font-weight:400; font-size:2rem; margin:0; color:va
   .tool .seal{width:24px; height:24px; font-size:.9rem}
 }
 
+/* Standalone / iPhone additions */
 :root{padding-top:env(safe-area-inset-top, 0px); padding-bottom:env(safe-area-inset-bottom, 0px)}
 body{touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; overscroll-behavior:none}
 </style>
@@ -225,6 +245,7 @@ body{touch-action:manipulation; -webkit-user-select:none; user-select:none; -web
     <div class="brand"><h1>守灯人</h1><span class="brand-en">The Lantern Keeper</span></div>
     <div class="top-right">
       <span class="purse" title="Coins"><i class="coin"></i><span id="coins">8</span></span>
+      <button class="icon-btn lang-btn" id="lang" aria-label="Switch to Chinese">中</button>
       <button class="icon-btn" id="help" aria-label="How to play">?</button>
       <button class="icon-btn" id="mute" aria-pressed="false" aria-label="Sound">♪</button>
     </div>
@@ -238,7 +259,7 @@ body{touch-action:manipulation; -webkit-user-select:none; user-select:none; -web
   <section class="arena" aria-label="Battle">
     <div class="side" id="pCard">
       <canvas id="pCan" width="200" height="200" aria-hidden="true"></canvas>
-      <div class="name">Bao 宝宝 <small id="pLv">Level 1</small></div>
+      <div class="name" id="pName">Bao 宝宝 <small id="pLv">Level 1</small></div>
       <div class="bar"><div class="fill" id="pFill"></div><span id="pTxt">50 / 50</span></div>
       <div class="xp" title="Experience"><i id="pXp"></i></div>
       <div class="chips"><span class="chip shield off" id="pShield">Shield 0</span></div>
@@ -258,7 +279,7 @@ body{touch-action:manipulation; -webkit-user-select:none; user-select:none; -web
     <div class="side" id="gCard" hidden>
       <div class="goal-title" id="gTitle">Yin Frost <small>Break all the frost</small></div>
       <div class="goals" id="goals"></div>
-      <div class="moves">Moves <b id="gMoves">18</b></div>
+      <div class="moves"><span id="lMoves">Moves</span> <b id="gMoves">18</b></div>
     </div>
   </section>
 
@@ -270,14 +291,30 @@ body{touch-action:manipulation; -webkit-user-select:none; user-select:none; -web
 
   <section class="tray">
     <div class="tools">
-      <button class="tool" id="tHammer"><span class="seal ink">锤</span>Hammer<b class="count" id="nHammer">1</b></button>
-      <button class="tool" id="tSwap"><span class="seal jade">换</span>Free swap<b class="count" id="nSwap">1</b></button>
-      <button class="tool" id="tLantern"><span class="seal gold">灯</span>Lantern<b class="count" id="nLantern">1</b></button>
-      <button class="palm" id="palm" disabled><span class="pf" id="palmFill"></span><b>Kung Fu Palm</b><small id="palmTxt">0 / 12 chi</small></button>
+      <button class="tool" id="tHammer"><span class="seal ink">锤</span><span id="lHammer">Hammer</span><b class="count" id="nHammer">1</b></button>
+      <button class="tool" id="tSwap"><span class="seal jade">换</span><span id="lSwap">Free swap</span><b class="count" id="nSwap">1</b></button>
+      <button class="tool" id="tLantern"><span class="seal gold">灯</span><span id="lLantern">Lantern</span><b class="count" id="nLantern">1</b></button>
+      <button class="palm" id="palm" disabled><span class="pf" id="palmFill"></span><b id="lPalm">Kung Fu Palm</b><small id="palmTxt">0 / 12 chi</small></button>
     </div>
     <p class="log" id="log">The Ghost Gate is open.</p>
   </section>
 </main>
+
+<div class="coach" id="coach" hidden>
+  <div class="coach-head"><span class="kicker" id="coachStep">1 / 7</span><button class="coach-skip" id="coachSkip">Skip tutorial</button></div>
+  <p id="coachText"></p>
+  <button class="btn" id="coachNext">Next</button>
+</div>
+
+<div class="overlay clip-overlay" id="clipOverlay" hidden>
+  <div class="modal clip-modal" role="dialog" aria-modal="true" aria-labelledby="clipTitle">
+    <h2 id="clipTitle">Take a breath</h2>
+    <div class="clip-box" id="clipBox"></div>
+    <p class="clip-note" id="clipNote" hidden></p>
+    <a class="clip-link" id="clipLink" href="https://www.youtube.com" target="_blank" rel="noopener">Open on YouTube</a>
+    <button class="btn" id="clipGo" disabled>Back in 15s</button>
+  </div>
+</div>
 
 <div class="overlay" id="overlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -296,87 +333,104 @@ const $ = id => document.getElementById(id);
 const COLS = 8, ROWS = 8, STONE = 5, RAINBOW = -1, FLOORS = 12;
 const INK = '#2a1d24';
 
+/* ================= language ================= */
+let lang = (() => { try { const s = localStorage.getItem('lk_lang'); if (s) return JSON.parse(s); } catch (e) {} return /^zh/i.test(navigator.language || '') ? 'zh' : 'en'; })();
+const L = (en, zh) => lang === 'zh' ? zh : en;
+const tx = (o, k) => (lang === 'zh' && o[k + 'Zh'] != null) ? o[k + 'Zh'] : o[k];
+const full = o => lang === 'zh' ? (o.zh || o.cn) : `${o.name} ${o.cn}`;
+const short = o => lang === 'zh' ? (o.zh || o.cn) : o.name;
+
 /* ================= data ================= */
 const GEM = [
-  { name:'Firecracker', cn:'鞭炮', role:'Attack',   fill:'#ff5e57', dark:'#a92f2f', blush:'#ffd0c9' },
-  { name:'Jade',        cn:'玉璧', role:'Shield',   fill:'#5fd39a', dark:'#23845a', blush:'#ff9fbd' },
-  { name:'Peach',       cn:'寿桃', role:'Heal',     fill:'#ffb0c4', dark:'#c25876', blush:'#ff6f96' },
-  { name:'Joss Gold',   cn:'元宝', role:'Coin+Chi', fill:'#ffcf4d', dark:'#a8740e', blush:'#ff9f8f' },
-  { name:'Bell',        cn:'铜铃', role:'Exorcise', fill:'#b79cff', dark:'#6146b8', blush:'#ff9fd0' },
-  { name:'Tombstone',   cn:'墓碑', role:'',         fill:'#a8a1b3', dark:'#5a5366', blush:'#fff' },
+  { name:'Firecracker', cn:'鞭炮', role:'Attack',   roleZh:'攻击',    fill:'#ff5e57', dark:'#a92f2f', blush:'#ffd0c9' },
+  { name:'Jade',        cn:'玉璧', role:'Shield',   roleZh:'护盾',    fill:'#5fd39a', dark:'#23845a', blush:'#ff9fbd' },
+  { name:'Peach',       cn:'寿桃', role:'Heal',     roleZh:'治疗',    fill:'#ffb0c4', dark:'#c25876', blush:'#ff6f96' },
+  { name:'Joss Gold',   cn:'元宝', role:'Coin+Chi', roleZh:'金币+气', fill:'#ffcf4d', dark:'#a8740e', blush:'#ff9f8f' },
+  { name:'Bell',        cn:'铜铃', role:'Exorcise', roleZh:'驱邪',    fill:'#b79cff', dark:'#6146b8', blush:'#ff9fd0' },
+  { name:'Tombstone',   cn:'墓碑', role:'',         roleZh:'',        fill:'#a8a1b3', dark:'#5a5366', blush:'#fff' },
 ];
 const MARK = {
-  fire:  { col:'#5fe0b0', name:'ghost fire' },
-  feast: { col:'#ffb347', name:'drool' },
-  curse: { col:'#c38bff', name:'curse' },
+  fire:  { col:'#5fe0b0' },
+  feast: { col:'#ffb347' },
+  curse: { col:'#c38bff' },
 };
 const RELICS = {
-  redstring:{ name:'Red String',     cn:'红绳', desc:'Start every battle with 8 shield.' },
-  jade:     { name:'Jade Pendant',   cn:'玉佩', desc:'Your shield no longer halves after enemy turns.' },
-  koi:      { name:'Spirit Koi',     cn:'灵鲤', desc:'Each cascade step adds ×0.4 instead of ×0.25.' },
-  lantern:  { name:'Palace Lantern', cn:'宫灯', desc:'Lantern bombs blast 5×5 instead of 3×3.' },
-  crane:    { name:'Paper Crane',    cn:'纸鹤', desc:'Every rocket fires at two targets.' },
-  toad:     { name:'Money Toad',     cn:'金蟾', desc:'Earn 50% more coins.' },
-  incense:  { name:'Incense Burner', cn:'香炉', desc:'Start every stage with 6 chi.' },
-  abacus:   { name:'Abacus',         cn:'算盘', desc:'+4 moves in every challenge.' },
-  taiji:    { name:'Taiji Charm',    cn:'太极', desc:'When your shield blocks a whole attack, hit back for 8.' },
-  drum:     { name:'Dragon Drum',    cn:'龙鼓', desc:'Making any special tile deals 4 damage.' },
-  bun:      { name:'Steamed Bun',    cn:'包子', desc:'Heal 6 HP after every win.' },
-  peachwood:{ name:'Peachwood Sword',cn:'桃剑', desc:'Clearing a marked tile also deals 4 damage.' },
-  bagua:    { name:'Bagua Mirror',   cn:'八卦', desc:'Interrupting a charge reflects 15 damage.' },
-  ledger:   { name:'Torn Ledger',    cn:'生死', desc:'Enemy countdowns start 1 turn longer.' },
+  redstring:{ name:'Red String',     cn:'红绳', zh:'红绳',     desc:'Start every battle with 8 shield.',                       descZh:'每场战斗开始时获得 8 点护盾。' },
+  jade:     { name:'Jade Pendant',   cn:'玉佩', zh:'玉佩',     desc:'Your shield no longer halves after enemy turns.',         descZh:'敌人行动后，护盾不再减半。' },
+  koi:      { name:'Spirit Koi',     cn:'灵鲤', zh:'灵鲤',     desc:'Each cascade step adds ×0.4 instead of ×0.25.',           descZh:'每层连锁的倍率增加 ×0.4（原为 ×0.25）。' },
+  lantern:  { name:'Palace Lantern', cn:'宫灯', zh:'宫灯',     desc:'Lantern bombs blast 5×5 instead of 3×3.',                 descZh:'灯笼炸弹的范围从 3×3 变为 5×5。' },
+  crane:    { name:'Paper Crane',    cn:'纸鹤', zh:'纸鹤',     desc:'Every rocket fires at two targets.',                      descZh:'每枚火箭会攻击两个目标。' },
+  toad:     { name:'Money Toad',     cn:'金蟾', zh:'金蟾',     desc:'Earn 50% more coins.',                                    descZh:'获得的金币增加 50%。' },
+  incense:  { name:'Incense Burner', cn:'香炉', zh:'香炉',     desc:'Start every stage with 6 chi.',                           descZh:'每关开始时获得 6 点气。' },
+  abacus:   { name:'Abacus',         cn:'算盘', zh:'算盘',     desc:'+4 moves in every challenge.',                            descZh:'每次试炼多 4 步。' },
+  taiji:    { name:'Taiji Charm',    cn:'太极', zh:'太极符',   desc:'When your shield blocks a whole attack, hit back for 8.', descZh:'护盾完全挡住一次攻击时，反击 8 点伤害。' },
+  drum:     { name:'Dragon Drum',    cn:'龙鼓', zh:'龙鼓',     desc:'Making any special tile deals 4 damage.',                 descZh:'每生成一个特殊方块，造成 4 点伤害。' },
+  bun:      { name:'Steamed Bun',    cn:'包子', zh:'包子',     desc:'Heal 6 HP after every win.',                              descZh:'每次胜利后回复 6 点生命。' },
+  peachwood:{ name:'Peachwood Sword',cn:'桃剑', zh:'桃木剑',   desc:'Clearing a marked tile also deals 4 damage.',             descZh:'消除被标记的方块时，额外造成 4 点伤害。' },
+  bagua:    { name:'Bagua Mirror',   cn:'八卦', zh:'八卦镜',   desc:'Interrupting a charge reflects 15 damage.',               descZh:'打断蓄力时，反弹 15 点伤害。' },
+  ledger:   { name:'Torn Ledger',    cn:'生死', zh:'残页生死簿', desc:'Enemy countdowns start 1 turn longer.',                 descZh:'敌人的倒计时多 1 回合。' },
 };
 const NODES = {
-  battle:   { seal:'战', name:'Battle',          desc:'A restless spirit blocks the road. Coins, XP and a treat.' },
-  elite:    { seal:'凶', name:'Guardian',        desc:'A guardian of the underworld. Wins a relic.' },
-  challenge:{ seal:'关', name:'Trial',           desc:'Clear a goal in limited moves. Wins a relic.' },
-  shop:     { seal:'市', name:'Ghost Market',    desc:'Spend coins on boosters, skills and relics.' },
-  rest:     { seal:'祠', name:'Ancestral Shrine',desc:'Light incense to heal, or train a skill.' },
-  event:    { seal:'奇', name:'Strange Encounter',desc:'Something waits in the fog.' },
-  boss:     { seal:'冥', name:'Impermanence',    desc:'The final guardian of Yama\'s Court.' },
+  battle:   { seal:'战', name:'Battle',           nameZh:'战斗',   desc:'A restless spirit blocks the road. Coins, XP and a treat.', descZh:'一个游魂挡住了去路。可得金币、经验和奖励。' },
+  elite:    { seal:'凶', name:'Guardian',         nameZh:'守关者', desc:'A guardian of the underworld. Wins a relic.',               descZh:'冥界的守关者。胜利可得法宝。' },
+  challenge:{ seal:'关', name:'Trial',            nameZh:'试炼',   desc:'Clear a goal in limited moves. Wins a relic.',              descZh:'在限定步数内完成目标。胜利可得法宝。' },
+  shop:     { seal:'市', name:'Ghost Market',     nameZh:'鬼市',   desc:'Spend coins on boosters, skills and relics.',               descZh:'用金币购买道具、技能和法宝。' },
+  rest:     { seal:'祠', name:'Ancestral Shrine', nameZh:'祠堂',   desc:'Light incense to heal, or train a skill.',                  descZh:'上香疗伤，或修炼技能。' },
+  event:    { seal:'奇', name:'Strange Encounter',nameZh:'奇遇',   desc:'Something waits in the fog.',                               descZh:'雾中似乎有什么在等着你。' },
+  boss:     { seal:'冥', name:'Impermanence',     nameZh:'无常',   desc:"The final guardian of Yama's Court.",                       descZh:'阎罗殿的最后一位守关者。' },
 };
 const ACTS = [
-  { from:1, name:'Act I · 鬼市 Ghost Market' },
-  { from:5, name:'Act II · 黄泉路 Yellow Springs Road' },
-  { from:9, name:'Act III · 阎罗殿 Yama\'s Court' },
+  { from:1, name:'Act I · 鬼市 Ghost Market',          nameZh:'第一幕 · 鬼市' },
+  { from:5, name:'Act II · 黄泉路 Yellow Springs Road', nameZh:'第二幕 · 黄泉路' },
+  { from:9, name:"Act III · 阎罗殿 Yama's Court",       nameZh:'第三幕 · 阎罗殿' },
 ];
 // intents: k kind, n marks, val value, t turns, brk break threshold
 const ENEMIES = {
-  egui:    { name:'Egui', cn:'饿鬼', title:'hungry ghost', hp:60, look:'egui',
+  egui:    { name:'Egui', cn:'饿鬼', title:'hungry ghost', titleZh:'饥饿的游魂', hp:60, look:'egui',
              pattern:[{k:'feast',n:3,val:6,t:2},{k:'atk',val:8,t:1},{k:'fire',n:3,val:4,t:2}] },
-  jiangshi:{ name:'Tiaotiao', cn:'僵尸', title:'hopping jiangshi', hp:85, look:'jiangshi', start:{locks:3},
+  jiangshi:{ name:'Tiaotiao', cn:'僵尸', title:'hopping jiangshi', titleZh:'一蹦一跳的僵尸', hp:85, look:'jiangshi', start:{locks:3},
              pattern:[{k:'lock',n:3,t:1},{k:'atk',val:7,perSeal:2,t:1},{k:'fire',n:3,val:5,t:2}] },
-  zhiren:  { name:'Zhiren', cn:'纸人', title:'paper effigy', hp:80, look:'zhiren',
-             pattern:[{k:'curse',n:4,t:2},{k:'atk',val:7,t:1},{k:'charge',name:'Paper Cut',val:22,brk:16,t:3}] },
-  fox:     { name:'Huli', cn:'狐仙', title:'fox spirit', hp:90, look:'fox',
+  zhiren:  { name:'Zhiren', cn:'纸人', title:'paper effigy', titleZh:'纸扎人偶', hp:80, look:'zhiren',
+             pattern:[{k:'curse',n:4,t:2},{k:'atk',val:7,t:1},{k:'charge',name:'Paper Cut',nameZh:'纸刃',val:22,brk:16,t:3}] },
+  fox:     { name:'Huli', cn:'狐仙', title:'fox spirit', titleZh:'狡黠的狐仙', hp:90, look:'fox',
              pattern:[{k:'guard',val:12,t:1},{k:'fire',n:4,val:5,t:2},{k:'steal',val:12,t:1},{k:'atk',val:9,t:1}] },
-  mengpo:  { name:'Meng Po', cn:'孟婆', title:'keeper of the bridge', hp:200, look:'mengpo', elite:true,
+  mengpo:  { name:'Meng Po', cn:'孟婆', title:'keeper of the bridge', titleZh:'奈何桥的守桥人', hp:200, look:'mengpo', elite:true,
              intro:'An old woman ladles soup at the foot of Naihe Bridge. "Drink, little one. Forget her. It hurts less." Bao pushes the bowl away.',
+             introZh:'奈何桥头，一位老婆婆正在舀汤。“喝吧，孩子。忘了她，就不疼了。”宝宝推开了碗。',
              outro:'Meng Po sets down her ladle. "Your grandmother refused the soup too. She said she had a lantern to finish." She points down the road.',
-             pattern:[{k:'fire',n:5,val:6,t:2},{k:'forget',val:12,dmg:6,t:1},{k:'charge',name:'Boiling Soup',val:30,brk:30,t:3},{k:'atk',val:10,t:1}] },
-  niuma:   { name:'Ox-Head & Horse-Face', cn:'牛头马面', title:'gate wardens', hp:440, look:'niuma', elite:true, graveGuard:2,
-             intro:'Two wardens block the gate of Yama\'s Court, one with an ox\'s head, one with a horse\'s. "No living soul passes." Their chains drag across the stone.',
-             outro:'Horse-Face drops a torn ledger page. Grandma\'s name is on it, struck through in fresh ink. Her time had not come. Someone crossed her out.',
-             pattern:[{k:'stone',n:4,t:1},{k:'atk',val:13,t:1},{k:'charge',name:'Chain Sweep',val:36,brk:50,t:3},{k:'fire',n:5,val:7,t:2}] },
-  wuchang: { name:'Black & White Impermanence', cn:'黑白无常', title:'collectors of souls', hp:680, look:'wuchang', elite:true,
+             outroZh:'孟婆放下汤勺。“你奶奶当年也不肯喝汤。她说，她还有一盏灯没点完。”她朝前方的路指了指。',
+             pattern:[{k:'fire',n:5,val:6,t:2},{k:'forget',val:12,dmg:6,t:1},{k:'charge',name:'Boiling Soup',nameZh:'滚汤',val:30,brk:30,t:3},{k:'atk',val:10,t:1}] },
+  niuma:   { name:'Ox-Head & Horse-Face', cn:'牛头马面', title:'gate wardens', titleZh:'鬼门守卫', hp:440, look:'niuma', elite:true, graveGuard:2,
+             intro:"Two wardens block the gate of Yama's Court, one with an ox's head, one with a horse's. \"No living soul passes.\" Their chains drag across the stone.",
+             introZh:'两名守卫挡在阎罗殿门前，一个牛头，一个马面。“活人不得通过。”铁链在石板上拖出刺耳的声响。',
+             outro:"Horse-Face drops a torn ledger page. Grandma's name is on it, struck through in fresh ink. Her time had not come. Someone crossed her out.",
+             outroZh:'马面掉落了一页残破的生死簿。奶奶的名字就在上面，被新墨划掉了。她的阳寿未尽，是有人故意划掉了她。',
+             pattern:[{k:'stone',n:4,t:1},{k:'atk',val:13,t:1},{k:'charge',name:'Chain Sweep',nameZh:'锁链横扫',val:36,brk:50,t:3},{k:'fire',n:5,val:7,t:2}] },
+  wuchang: { name:'Black & White Impermanence', cn:'黑白无常', title:'collectors of souls', titleZh:'勾魂使者', hp:680, look:'wuchang', elite:true,
              intro:'In the court a clerk scratches names out of the Book of Life and Death, one coin at a time. Two figures in tall hats step from the shadows, chains rattling. "The ledger is closed. Her lantern belongs to us now."',
+             introZh:'殿中，一名判官正在生死簿上划掉名字，划一个，收一枚铜钱。两个戴着高帽的身影从阴影中走出，锁链叮当作响。“名册已定。她的灯，如今归我们了。”',
              phaseLine:'White Impermanence falls back. Black Impermanence tightens the chain and the court goes dark.',
+             phaseLineZh:'白无常退下。黑无常收紧锁链，大殿陷入一片黑暗。',
              pattern:[{k:'feast',n:5,val:10,t:2},{k:'fire',n:5,val:7,t:2},{k:'atk',val:12,t:1},{k:'curse',n:6,t:2}],
-             phase2:[{k:'charge',name:'Soul Chain',val:44,brk:70,t:3},{k:'lock',n:5,t:1},{k:'atk',val:16,t:1},{k:'fire',n:6,val:8,t:2}] },
+             phase2:[{k:'charge',name:'Soul Chain',nameZh:'勾魂锁',val:44,brk:70,t:3},{k:'lock',n:5,t:1},{k:'atk',val:16,t:1},{k:'fire',n:6,val:8,t:2}] },
 };
 const CHALLENGES = [
-  { name:'Yin Frost',      cn:'阴霜', desc:'Break all the frost',            goals:[{kind:'ice'}], setup:{ice:16, ice2:5}, moves:18 },
-  { name:'Lost Souls',     cn:'孤魂', desc:'Guide lost souls to the bottom', goals:[{kind:'env', need:3}], setup:{env:2}, moves:20 },
-  { name:'Graveyard',      cn:'乱葬岗', desc:'Smash every tombstone',        goals:[{kind:'stone'}], setup:{stones:9}, moves:16 },
-  { name:'Talisman Seals', cn:'符咒', desc:'Tear every paper seal',          goals:[{kind:'lock'}], setup:{locks:11}, moves:16 },
-  { name:'Offerings',      cn:'供品', desc:'Collect the tiles shown',        goals:[{kind:'gem0', need:22},{kind:'gem3', need:14}], setup:{}, moves:18 },
-  { name:'Restless Night', cn:'不眠夜', desc:'Frost and lost souls',         goals:[{kind:'ice'},{kind:'env', need:2}], setup:{ice:10, ice2:3, env:1}, moves:20 },
+  { name:'Yin Frost',      cn:'阴霜',   desc:'Break all the frost',            descZh:'打碎所有阴霜',       goals:[{kind:'ice'}], setup:{ice:16, ice2:5}, moves:18 },
+  { name:'Lost Souls',     cn:'孤魂',   desc:'Guide lost souls to the bottom', descZh:'把孤魂引到最底部',   goals:[{kind:'env', need:3}], setup:{env:2}, moves:20 },
+  { name:'Graveyard',      cn:'乱葬岗', desc:'Smash every tombstone',          descZh:'砸碎所有墓碑',       goals:[{kind:'stone'}], setup:{stones:9}, moves:16 },
+  { name:'Talisman Seals', cn:'符咒',   desc:'Tear every paper seal',          descZh:'撕掉所有符咒',       goals:[{kind:'lock'}], setup:{locks:11}, moves:16 },
+  { name:'Offerings',      cn:'供品',   desc:'Collect the tiles shown',        descZh:'收集指定的方块',     goals:[{kind:'gem0', need:22},{kind:'gem3', need:14}], setup:{}, moves:18 },
+  { name:'Restless Night', cn:'不眠夜', desc:'Frost and lost souls',           descZh:'阴霜与孤魂',         goals:[{kind:'ice'},{kind:'env', need:2}], setup:{ice:10, ice2:3, env:1}, moves:20 },
 ];
 const STORY = {
   prologue: 'On the fifteenth night of the seventh month, the Ghost Gate opens and the dead walk home. Every year Grandma lit the lanterns that guide them. This year she did not come back. Her lantern was found snuffed out at the gate.\n\nBao picks up her firecrackers and steps into the dark. Twelve lanterns light the road to the underworld. The gate closes at dawn.',
-  act2: 'Past the bridge, the Yellow Springs Road is lit only by ghost fire. Joss paper drifts down like snow. Somewhere ahead, a bell rings in Grandma\'s rhythm: two short, one long.',
-  act3: 'The road ends at a hall of black lacquer. Inside, a thousand names hang on strips of paper, and a brush is still dripping. Grandma\'s hairpin lies on the steps.',
-  ending: 'Dawn cracks through the Ghost Gate. Bao dips Grandma\'s lantern wick in the clerk\'s ink and writes her name back into the Book of Life and Death.\n\nIn Peach Village, a lantern flickers on. Grandma sits beside it, scolding Bao for being out so late, and pours two cups of tea.',
+  prologueZh: '七月十五，鬼门大开，亡魂归家。每年这一夜，奶奶都会点亮为亡魂引路的灯笼。可今年，她没有回来。人们在鬼门前找到了她的灯笼，灯已经熄了。\n\n宝宝拿起奶奶的鞭炮，走进了黑暗。十二盏灯笼照亮通往冥界的路。天亮之时，鬼门就会关闭。',
+  act2: "Past the bridge, the Yellow Springs Road is lit only by ghost fire. Joss paper drifts down like snow. Somewhere ahead, a bell rings in Grandma's rhythm: two short, one long.",
+  act2Zh: '过了奈何桥，黄泉路上只有鬼火照明。纸钱像雪花一样飘落。前方某处传来一阵铃声，是奶奶的节奏：两短一长。',
+  act3: "The road ends at a hall of black lacquer. Inside, a thousand names hang on strips of paper, and a brush is still dripping. Grandma's hairpin lies on the steps.",
+  act3Zh: '路的尽头是一座黑漆大殿。殿内挂着上千条写着名字的纸条，一支毛笔还在滴墨。奶奶的发簪落在台阶上。',
+  ending: "Dawn cracks through the Ghost Gate. Bao dips Grandma's lantern wick in the clerk's ink and writes her name back into the Book of Life and Death.\n\nIn Peach Village, a lantern flickers on. Grandma sits beside it, scolding Bao for being out so late, and pours two cups of tea.",
+  endingZh: '晨光穿过鬼门。宝宝用奶奶的灯芯蘸上判官的墨，把她的名字重新写回了生死簿。\n\n桃源村里，一盏灯笼亮了起来。奶奶坐在灯旁，数落宝宝这么晚还不回家，然后倒了两杯热茶。',
 };
 
 /* ================= state ================= */
@@ -704,7 +758,7 @@ async function collectSouls() {
       const p = grid[ROWS - 1][c];
       if (p && p.kind === 'env') {
         kill(p); goalProgress('env'); any = true;
-        pops.push({ text: 'Freed', x: c + 0.5, y: ROWS - 0.8, life: 1, color: '#bfe9ff', size: 0.42 });
+        pops.push({ text: L('Freed', '超度'), x: c + 0.5, y: ROWS - 0.8, life: 1, color: '#bfe9ff', size: 0.42 });
         sfx(880, 0.15); setTimeout(() => sfx(1180, 0.15), 90);
       }
     }
@@ -726,7 +780,7 @@ async function cascade(focus, level = 0) {
       if (pos == null) pos = sp === 'bomb' && g.inter != null ? g.inter : sp === 'rocket' ? g.squares[0][0] : g.longest.keys[g.longest.keys.length >> 1];
       creates.push({ c: kc(pos), r: kr(pos), t: sp === 'rainbow' ? RAINBOW : g.t, sp });
     }
-    if (level >= 2) pops.push({ text: `Combo ×${fmtMul(level)}`, x: COLS / 2, y: ROWS / 2, life: 1, color: '#f0b84a', size: 0.55 });
+    if (level >= 2) pops.push({ text: L(`Combo ×${fmtMul(level)}`, `连击 ×${fmtMul(level)}`), x: COLS / 2, y: ROWS / 2, life: 1, color: '#f0b84a', size: 0.55 });
     await resolveHits(hits, level, creates, true);
     focus = [];
   }
@@ -736,7 +790,7 @@ const comboStep = () => hasRelic('koi') ? 0.4 : 0.25;
 const fmtMul = level => String(+(1 + comboStep() * (level - 1)).toFixed(2));
 
 async function shuffle() {
-  pops.push({ text: 'Shuffle!', x: COLS / 2, y: ROWS / 2, life: 1, color: '#c9a8ff', size: 0.6 });
+  pops.push({ text: L('Shuffle!', '洗牌！'), x: COLS / 2, y: ROWS / 2, life: 1, color: '#c9a8ff', size: 0.6 });
   const cells = [], pieces = [];
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const p = grid[r][c]; if (p && p.kind === 'gem' && !p.lock) { cells.push([c, r]); pieces.push(p); } }
   for (let tries = 0; tries < 300; tries++) {
@@ -779,6 +833,7 @@ async function doSwap(a, b, free) {
     }
     await cascade([a, b], level);
     if (free) { run.items.swap--; mode = null; }
+    tutEvent('move');
     await afterBoardChange(!free);
   } finally { busy = false; renderHUD(); }
 }
@@ -787,7 +842,7 @@ async function comboSwap(pa, pb, b) {
   const c = b.c, r = b.r;
   const hits = new Set([keyOf(pa.c, pa.r), keyOf(pb.c, pb.r)]);
   const A = pa.sp, B = pb.sp, has = s => A === s || B === s;
-  pops.push({ text: 'Combo!', x: c + 0.5, y: r, life: 1, color: '#f0b84a', size: 0.5 });
+  pops.push({ text: L('Combo!', '组合技！'), x: c + 0.5, y: r, life: 1, color: '#f0b84a', size: 0.5 });
   if (A === 'rainbow' && B === 'rainbow') {
     pa.sp = pb.sp = null;
     for (let k = 0; k < COLS * ROWS; k++) hits.add(k);
@@ -826,6 +881,7 @@ async function activateSpecial(cell) {
   try {
     await resolveHits(new Set([keyOf(cell.c, cell.r)]), 1);
     await cascade([], 1);
+    tutEvent('move');
     await afterBoardChange(true);
   } finally { busy = false; renderHUD(); }
 }
@@ -843,10 +899,10 @@ async function useHammer(cell) {
 }
 function useLantern(cell) {
   const p = grid[cell.r][cell.c];
-  if (!isPlainGem(p)) { if (p) wobble(p); setLog('Pick a plain tile to turn into a lantern bomb.'); return; }
+  if (!isPlainGem(p)) { if (p) wobble(p); setLog(L('Pick a plain tile to turn into a lantern bomb.', '选择一个普通方块，把它变成灯笼炸弹。')); return; }
   run.items.lantern--; mode = null;
   p.sp = 'bomb'; p.pulse = 1; sfx(660, 0.2);
-  setLog('Lantern ready. Swap or tap it to set it off.');
+  setLog(L('Lantern ready. Swap or tap it to set it off.', '灯笼准备好了。交换或连点它即可引爆。'));
   renderHUD();
 }
 async function palm() {
@@ -856,7 +912,7 @@ async function palm() {
     hero.chi = 0; hero.punch = 0.6; renderHUD();
     sfx(200, 0.3, 'sawtooth', 0.06);
     await sleep(250);
-    pops.push({ text: 'Kung Fu Palm!', x: COLS / 2, y: ROWS / 2, life: 1.2, color: '#ff7468', size: 0.62 });
+    pops.push({ text: L('Kung Fu Palm!', '功夫掌！'), x: COLS / 2, y: ROWS / 2, life: 1.2, color: '#ff7468', size: 0.62 });
     const hits = new Set();
     if (stage.type === 'battle') {
       hitEnemy(hero.palm); shake($('eCard'));
@@ -913,11 +969,11 @@ function hitEnemy(d) {
   enemy.hp = Math.max(0, enemy.hp - real);
   turn.dmg += real;
   if (real) { enemy.hurt = 0.45; floatText($('eCard'), `−${real}`, 'dmg'); }
-  if (blocked) floatText($('eCard'), `guard ${blocked}`, 'guard');
+  if (blocked) floatText($('eCard'), L(`guard ${blocked}`, `防御 ${blocked}`), 'guard');
   const it = enemy.intent;
   if (it.k === 'charge' && !enemy.interrupted) {
     it.dealt += real;
-    if (it.dealt >= it.brk) { enemy.interrupted = true; floatText($('eCard'), 'Interrupted!', 'big'); sfx(1046, 0.3, 'triangle', 0.08); }
+    if (it.dealt >= it.brk) { enemy.interrupted = true; floatText($('eCard'), L('Interrupted!', '打断！'), 'big'); sfx(1046, 0.3, 'triangle', 0.08); }
   }
   if (enemy.phase2 && !enemy.inPhase2 && enemy.hp > 0 && enemy.hp <= enemy.max / 2) enemy.phaseNow = true;
   const pc = $('pCan'); pc.classList.remove('hop'); void pc.offsetWidth; pc.classList.add('hop');
@@ -928,8 +984,8 @@ function damagePlayer(v) {
   const real = v - absorbed;
   hero.hp = Math.max(0, hero.hp - real);
   if (real) { hero.hurt = 0.5; floatText($('pCard'), `−${real}`, 'dmg'); shake($('pCard')); sfx(130, 0.22, 'square', 0.05); }
-  if (absorbed) floatText($('pCard'), `blocked ${absorbed}`, 'shield');
-  if (v > 0 && real === 0 && hasRelic('taiji')) { hitEnemy(8); floatText($('eCard'), 'Taiji!', 'guard'); }
+  if (absorbed) floatText($('pCard'), L(`blocked ${absorbed}`, `挡住 ${absorbed}`), 'shield');
+  if (v > 0 && real === 0 && hasRelic('taiji')) { hitEnemy(8); floatText($('eCard'), L('Taiji!', '太极！'), 'guard'); }
   return { real, absorbed };
 }
 
@@ -952,43 +1008,43 @@ function nextIntent(first) {
 function intentLabel(it) {
   const live = ['fire', 'feast', 'curse'].includes(it.k) ? marksOf(it).length : 0;
   switch (it.k) {
-    case 'atk':    return `Strike ${it.val + (it.perSeal ? it.perSeal * sealCount() : 0)}`;
-    case 'fire':   return `Ghost fire ${live}×${it.val}`;
-    case 'feast':  return `Feast ${live}×${it.val}`;
-    case 'curse':  return `Curse ×${live}`;
-    case 'charge': return `${it.name} ${it.val}`;
-    case 'guard':  return `Guard ${it.val}`;
-    case 'heal':   return `Heal ${it.val}`;
-    case 'steal':  return `Steal ${it.val}`;
-    case 'lock':   return `Seal ×${it.n}`;
-    case 'stone':  return `Graves ×${it.n}`;
-    case 'forget': return 'Soup of Forgetting';
+    case 'atk':    return L(`Strike ${it.val + (it.perSeal ? it.perSeal * sealCount() : 0)}`, `攻击 ${it.val + (it.perSeal ? it.perSeal * sealCount() : 0)}`);
+    case 'fire':   return L(`Ghost fire ${live}×${it.val}`, `鬼火 ${live}×${it.val}`);
+    case 'feast':  return L(`Feast ${live}×${it.val}`, `啃食 ${live}×${it.val}`);
+    case 'curse':  return L(`Curse ×${live}`, `诅咒 ×${live}`);
+    case 'charge': return `${tx(it, 'name')} ${it.val}`;
+    case 'guard':  return L(`Guard ${it.val}`, `防御 ${it.val}`);
+    case 'heal':   return L(`Heal ${it.val}`, `回血 ${it.val}`);
+    case 'steal':  return L(`Steal ${it.val}`, `偷钱 ${it.val}`);
+    case 'lock':   return L(`Seal ×${it.n}`, `封印 ×${it.n}`);
+    case 'stone':  return L(`Graves ×${it.n}`, `立碑 ×${it.n}`);
+    case 'forget': return L('Soup of Forgetting', '孟婆汤');
   }
 }
 function intentHint(it) {
   switch (it.k) {
-    case 'atk':    return it.perSeal ? `+${it.perSeal} per seal on the board. Tear seals or raise shield.` : 'Raise shield with jade, or ring bells to soften it.';
-    case 'fire':   return 'Each green-flame tile left burns you. Clear or exorcise them.';
-    case 'feast':  return 'Each drool-marked tile left heals it. Clear or exorcise them.';
-    case 'curse':  return 'Purple-marked tiles left become tombstones.';
-    case 'charge': return `Deal ${Math.max(0, it.brk - it.dealt)} more damage to interrupt.`;
-    case 'guard':  return 'Blocks your next damage.';
-    case 'heal':   return 'Hit it hard before it recovers.';
-    case 'steal':  return 'Takes coins from your purse.';
-    case 'lock':   return 'Seals tiles so they cannot move.';
-    case 'stone':  return enemy.graveGuard ? `Each tombstone gives it ${enemy.graveGuard} guard per turn.` : 'Raises tombstones.';
-    case 'forget': return 'Wipes your shield and chi, and heals it.';
+    case 'atk':    return it.perSeal ? L(`+${it.perSeal} per seal on the board. Tear seals or raise shield.`, `场上每有一张符咒，伤害 +${it.perSeal}。撕掉符咒或加护盾。`) : L('Raise shield with jade, or ring bells to soften it.', '用玉璧加护盾，或摇铃减弱它。');
+    case 'fire':   return L('Each green-flame tile left burns you. Clear or exorcise them.', '留下的每个鬼火方块都会烧伤你。消除或驱散它们。');
+    case 'feast':  return L('Each drool-marked tile left heals it. Clear or exorcise them.', '留下的每个口水方块都会让它回血。消除或驱散它们。');
+    case 'curse':  return L('Purple-marked tiles left become tombstones.', '留下的紫色诅咒方块会变成墓碑。');
+    case 'charge': return L(`Deal ${Math.max(0, it.brk - it.dealt)} more damage to interrupt.`, `再造成 ${Math.max(0, it.brk - it.dealt)} 点伤害即可打断。`);
+    case 'guard':  return L('Blocks your next damage.', '会挡住你接下来的伤害。');
+    case 'heal':   return L('Hit it hard before it recovers.', '趁它恢复前狠狠地打。');
+    case 'steal':  return L('Takes coins from your purse.', '会从你的钱袋里偷钱。');
+    case 'lock':   return L('Seals tiles so they cannot move.', '封住方块，让它们无法移动。');
+    case 'stone':  return enemy.graveGuard ? L(`Each tombstone gives it ${enemy.graveGuard} guard per turn.`, `每块墓碑每回合给它 ${enemy.graveGuard} 点防御。`) : L('Raises tombstones.', '会竖起墓碑。');
+    case 'forget': return L('Wipes your shield and chi, and heals it.', '清空你的护盾和气，并为它回血。');
   }
   return '';
 }
 function intentIntro(it) {
-  const n = enemy.name;
+  const n = short(enemy), nm = tx(it, 'name');
   switch (it.k) {
-    case 'fire':   return `${n} lights ${it.n} ghost fires on the board. Clear those tiles within ${it.t} turns.`;
-    case 'feast':  return `${n} drools over ${it.n} tiles. Clear them before it feeds.`;
-    case 'curse':  return `${n} curses ${it.n} tiles. They will turn to stone.`;
-    case 'charge': return `${n} starts charging ${it.name}! Deal ${it.brk} damage in ${it.t} turns to interrupt.`;
-    default:       return `${n} prepares: ${intentLabel(it)}.`;
+    case 'fire':   return L(`${n} lights ${it.n} ghost fires on the board. Clear those tiles within ${it.t} turns.`, `${n}在棋盘上点燃了 ${it.n} 团鬼火。在 ${it.t} 回合内消除这些方块。`);
+    case 'feast':  return L(`${n} drools over ${it.n} tiles. Clear them before it feeds.`, `${n}对着 ${it.n} 个方块流口水。在它开吃之前消除它们。`);
+    case 'curse':  return L(`${n} curses ${it.n} tiles. They will turn to stone.`, `${n}诅咒了 ${it.n} 个方块，它们将会变成墓碑。`);
+    case 'charge': return L(`${n} starts charging ${nm}! Deal ${it.brk} damage in ${it.t} turns to interrupt.`, `${n}开始蓄力「${nm}」！在 ${it.t} 回合内造成 ${it.brk} 点伤害即可打断。`);
+    default:       return L(`${n} prepares: ${intentLabel(it)}.`, `${n}准备：${intentLabel(it)}。`);
   }
 }
 
@@ -1003,79 +1059,79 @@ async function enemyAct() {
     case 'atk': {
       const v = it.val + (it.perSeal ? it.perSeal * sealCount() : 0);
       const { real, absorbed } = damagePlayer(v);
-      msg = v === 0 ? `${enemy.name}'s strike fizzles out.` : `${enemy.name} strikes Bao for ${real}` + (absorbed ? ` (${absorbed} blocked).` : '.');
+      msg = v === 0 ? L(`${enemy.name}'s strike fizzles out.`, `${short(enemy)}的攻击落空了。`) : L(`${enemy.name} strikes Bao for ${real}` + (absorbed ? ` (${absorbed} blocked).` : '.'), `${short(enemy)}攻击宝宝，造成 ${real} 点伤害` + (absorbed ? `（挡住 ${absorbed}）。` : '。'));
       break;
     }
-    case 'charge': { const { real } = damagePlayer(it.val); msg = `${it.name} lands for ${real}!`; break; }
+    case 'charge': { const { real } = damagePlayer(it.val); msg = L(`${it.name} lands for ${real}!`, `「${tx(it, 'name')}」命中，造成 ${real} 点伤害！`); break; }
     case 'fire': {
-      if (!live.length) { msg = 'Every ghost fire was put out. Nothing happens.'; break; }
+      if (!live.length) { msg = L('Every ghost fire was put out. Nothing happens.', '鬼火全被扑灭了，什么也没发生。'); break; }
       live.forEach(p => { fx.push({ kind: 'ring', c: p.c, r: p.r, rad: 0, life: 1 }); p.mark = null; p.pulse = 1; });
       const { real } = damagePlayer(live.length * it.val);
-      msg = `${live.length} ghost fire${live.length > 1 ? 's' : ''} flare up and burn Bao for ${real}.`;
+      msg = L(`${live.length} ghost fire${live.length > 1 ? 's' : ''} flare up and burn Bao for ${real}.`, `${live.length} 团鬼火燃起，烧伤宝宝 ${real} 点。`);
       break;
     }
     case 'feast': {
       live.forEach(p => { p.mark = null; kill(p); });
       const add = Math.min(live.length * it.val, enemy.max - enemy.hp); enemy.hp += add;
       if (add) floatText($('eCard'), `+${add}`, 'heal');
-      msg = live.length ? `${enemy.name} gobbles ${live.length} tile${live.length > 1 ? 's' : ''} and heals ${add}.` : `${enemy.name} finds nothing left to eat.`;
+      msg = live.length ? L(`${enemy.name} gobbles ${live.length} tile${live.length > 1 ? 's' : ''} and heals ${add}.`, `${short(enemy)}吞下了 ${live.length} 个方块，回复 ${add} 点生命。`) : L(`${enemy.name} finds nothing left to eat.`, `${short(enemy)}没找到能吃的东西。`);
       if (live.length) { await sleep(150); gravity(); await settled(); }
       break;
     }
     case 'curse': {
       live.forEach(p => { p.mark = null; p.kind = 'stone'; p.t = STONE; p.hp = 1; p.sp = null; p.pulse = 1; burst(p, '#c38bff'); });
-      msg = live.length ? `${live.length} cursed tile${live.length > 1 ? 's' : ''} turn to tombstones.` : 'The curse finds no hold.';
+      msg = live.length ? L(`${live.length} cursed tile${live.length > 1 ? 's' : ''} turn to tombstones.`, `${live.length} 个被诅咒的方块变成了墓碑。`) : L('The curse finds no hold.', '诅咒落了空。');
       break;
     }
     case 'lock':
       shuffleArr(allPieces().filter(isPlainGem)).slice(0, it.n).forEach(p => { p.lock = 1; p.pulse = 1; });
-      msg = `${enemy.name} slaps paper seals on ${it.n} tiles. Match them or ring bells to tear them.`;
+      msg = L(`${enemy.name} slaps paper seals on ${it.n} tiles. Match them or ring bells to tear them.`, `${short(enemy)}在 ${it.n} 个方块上贴了符咒。消除它们或摇铃就能撕掉。`);
       break;
     case 'stone':
       shuffleArr(allPieces().filter(p => isPlainGem(p) && !p.mark)).slice(0, it.n).forEach(p => { p.kind = 'stone'; p.t = STONE; p.hp = 1; p.pulse = 1; burst(p); });
-      msg = `${enemy.name} raises ${it.n} tombstones. Match next to them to smash them.`;
+      msg = L(`${enemy.name} raises ${it.n} tombstones. Match next to them to smash them.`, `${short(enemy)}竖起了 ${it.n} 块墓碑。在旁边消除就能砸碎。`);
       break;
     case 'guard':
-      enemy.guard = it.val; floatText($('eCard'), `guard ${it.val}`, 'guard');
-      msg = `${enemy.name} braces itself. The next ${it.val} damage is blocked.`;
+      enemy.guard = it.val; floatText($('eCard'), L(`guard ${it.val}`, `防御 ${it.val}`), 'guard');
+      msg = L(`${enemy.name} braces itself. The next ${it.val} damage is blocked.`, `${short(enemy)}摆好了架势，接下来 ${it.val} 点伤害会被挡住。`);
       break;
     case 'heal': {
       const add = Math.min(it.val, enemy.max - enemy.hp); enemy.hp += add; floatText($('eCard'), `+${add}`, 'heal');
-      msg = `${enemy.name} heals ${add}.`; break;
+      msg = L(`${enemy.name} heals ${add}.`, `${short(enemy)}回复了 ${add} 点生命。`); break;
     }
     case 'steal': {
-      const took = Math.min(it.val, run.coins); run.coins -= took; floatText($('pCard'), `−${took} coins`, 'coin');
-      msg = `${enemy.name} pinches ${took} coins from your purse.`; break;
+      const took = Math.min(it.val, run.coins); run.coins -= took; floatText($('pCard'), L(`−${took} coins`, `金币 −${took}`), 'coin');
+      msg = L(`${enemy.name} pinches ${took} coins from your purse.`, `${short(enemy)}从你的钱袋里偷走了 ${took} 枚金币。`); break;
     }
     case 'forget': {
       hero.shield = 0; hero.chi = 0;
       const add = Math.min(it.val, enemy.max - enemy.hp); enemy.hp += add;
-      floatText($('pCard'), 'Forgotten…', 'calm');
+      floatText($('pCard'), L('Forgotten…', '遗忘…'), 'calm');
       const { real } = damagePlayer(it.dmg || 0);
-      msg = `The Soup of Forgetting splashes Bao for ${real}. Shield and chi are gone, and ${enemy.name} heals ${add}.`; break;
+      msg = L(`The Soup of Forgetting splashes Bao for ${real}. Shield and chi are gone, and ${enemy.name} heals ${add}.`, `孟婆汤溅到宝宝身上，造成 ${real} 点伤害。护盾和气都没了，${short(enemy)}回复了 ${add} 点生命。`); break;
     }
   }
   sfx(110, 0.25, 'sawtooth', 0.04);
   if (enemy.graveGuard) {
     const g = graveCount() * enemy.graveGuard;
-    if (g) { enemy.guard += g; floatText($('eCard'), `guard +${g}`, 'guard'); msg += ` The tombstones grant ${g} guard.`; }
+    if (g) { enemy.guard += g; floatText($('eCard'), L(`guard +${g}`, `防御 +${g}`), 'guard'); msg += L(` The tombstones grant ${g} guard.`, `墓碑提供了 ${g} 点防御。`); }
   }
   if (!hasRelic('jade')) hero.shield = Math.floor(hero.shield / 2);
   allPieces().forEach(p => { if (p.mark && p.mark.iid === it.iid) p.mark = null; });
   nextIntent(true);
-  return msg + ' Next: ' + intentLabel(enemy.intent) + '.';
+  return msg + L(' Next: ', ' 下一步：') + intentLabel(enemy.intent) + L('.', '。');
 }
 
 function turnSummary() {
   const b = [];
-  if (turn.dmg) b.push(`${turn.dmg} damage`);
-  if (turn.shield) b.push(`+${turn.shield} shield`);
-  if (turn.heal) b.push(`+${turn.heal} HP`);
-  if (turn.doused) b.push(`${turn.doused} mark${turn.doused > 1 ? 's' : ''} cleared`);
-  if (turn.exo && !turn.doused) b.push('exorcised');
-  if (turn.coins) b.push(`+${turn.coins} coins`);
-  let s = b.length ? b.join(', ') + '.' : 'Nothing much happens.';
-  if (turn.maxLevel > 1) s = `${turn.maxLevel}-chain! ` + s;
+  if (turn.dmg) b.push(L(`${turn.dmg} damage`, `${turn.dmg} 伤害`));
+  if (turn.shield) b.push(L(`+${turn.shield} shield`, `护盾 +${turn.shield}`));
+  if (turn.heal) b.push(L(`+${turn.heal} HP`, `生命 +${turn.heal}`));
+  if (turn.doused) b.push(L(`${turn.doused} mark${turn.doused > 1 ? 's' : ''} cleared`, `清除 ${turn.doused} 个标记`));
+  if (turn.exo && !turn.doused) b.push(L('exorcised', '驱邪成功'));
+  if (turn.coins) b.push(L(`+${turn.coins} coins`, `金币 +${turn.coins}`));
+  let s = b.length ? b.join(L(', ', '，')) + L('.', '。') : L('Nothing much happens.', '没什么效果。');
+  if (turn.maxLevel > 1) s = L(`${turn.maxLevel}-chain! `, `${turn.maxLevel} 连锁！`) + s;
   return s;
 }
 
@@ -1083,19 +1139,19 @@ async function afterBoardChange(consume) {
   if (stage.over) return;
   renderHUD();
   if (stage.type === 'battle') {
-    if (enemy.hp <= 0) { setLog(turnSummary() + ` ${enemy.name} fades away.`); return endStage('win'); }
+    if (enemy.hp <= 0) { setLog(turnSummary() + L(` ${enemy.name} fades away.`, ` ${short(enemy)}消散了。`)); return endStage('win'); }
     let msg = turnSummary();
     if (enemy.phaseNow) {
       enemy.phaseNow = false; enemy.inPhase2 = true; enemy.pattern = enemy.phase2; enemy.pi = -1;
       allPieces().forEach(p => p.mark = null);
       nextIntent(true);
-      msg = enemy.phaseLine + ' ' + intentIntro(enemy.intent);
-      floatText($('eCard'), 'Phase 2', 'big'); sfx(90, 0.5, 'sawtooth', 0.06);
+      msg = tx(enemy, 'phaseLine') + ' ' + intentIntro(enemy.intent);
+      floatText($('eCard'), L('Phase 2', '第二阶段'), 'big'); sfx(90, 0.5, 'sawtooth', 0.06);
     } else if (enemy.interrupted) {
       const reflect = hasRelic('bagua') ? 15 : 0;
-      msg += ` ${enemy.intent.name} is interrupted!`;
+      msg += L(` ${enemy.intent.name} is interrupted!`, ` 「${tx(enemy.intent, 'name')}」被打断了！`);
       nextIntent(true);
-      if (reflect) { hitEnemy(reflect); msg += ` The Bagua Mirror reflects ${reflect}.`; }
+      if (reflect) { hitEnemy(reflect); msg += L(` The Bagua Mirror reflects ${reflect}.`, ` 八卦镜反弹了 ${reflect} 点伤害。`); }
       msg += ' ' + intentIntro(enemy.intent);
     } else if (consume) {
       enemy.intent.t--;
@@ -1103,12 +1159,19 @@ async function afterBoardChange(consume) {
     }
     setLog(msg); renderHUD();
     if (enemy.hp <= 0) return endStage('win');
-    if (hero.hp <= 0) return endStage('lose');
+    if (hero.hp <= 0) {
+      if (!(await offerRevive('battle'))) return endStage('lose');
+      hero.hp = Math.ceil(hero.max / 2); hero.hurt = 0; floatText($('pCard'), L('Back up!', '重新站起！'), 'heal');
+      setLog(L('Bao gets back up with half HP. Keep going!', '宝宝带着一半生命重新站了起来。继续战斗！')); renderHUD();
+    }
   } else {
     if (consume) stage.moves--;
     renderHUD();
-    if (goalsDone()) { setLog('Every goal is done!'); return endStage('win'); }
-    if (stage.moves <= 0) { setLog('Out of moves.'); return endStage('lose'); }
+    if (goalsDone()) { setLog(L('Every goal is done!', '目标全部完成！')); return endStage('win'); }
+    if (stage.moves <= 0) {
+      if (!(await offerRevive('challenge'))) { setLog(L('Out of moves.', '步数用完了。')); return endStage('lose'); }
+      stage.moves += 5; setLog(L('5 more moves. Make them count!', '再给你 5 步，好好把握！')); renderHUD();
+    }
     setLog(turnSummary());
   }
   if (!findMove()) await shuffle();
@@ -1141,14 +1204,14 @@ function playStage(def, setup, onReady) {
 const dreadMul = () => ({ hp: 1 + 0.15 * run.dread, atk: 1 + 0.1 * run.dread });
 /* ---------- meta progression: Ancestral Hall ---------- */
 const HALL = [
-  { id:'sturdy', seal:'寿', title:'Sturdy Spirit',  max:4, cost:l => 15 + 10 * l, desc:l => `Start every run with +${5 * (l + 1)} max HP.`, sealClass:'jade' },
-  { id:'bag',    seal:'囊', title:'Full Bag',       max:2, cost:l => 20 + 15 * l, desc:l => `Start with ${l + 1} extra Hammer and Lantern.`, sealClass:'gold' },
-  { id:'coins',  seal:'金', title:'Inheritance',    max:2, cost:l => 15 + 10 * l, desc:l => `Start with ${15 * (l + 1)} extra coins.`, sealClass:'gold' },
-  { id:'paws',   seal:'鞭', title:'Trained Paws',   max:1, cost:() => 30, desc:() => 'Start with Firecracker Lv 2.' },
-  { id:'gift',   seal:'祖', title:'Ancestor\'s Gift',max:1, cost:() => 40, desc:() => 'Start every run with a random relic.', sealClass:'violet' },
-  { id:'flame',  seal:'焰', title:'Third Flame',    max:1, cost:() => 50, desc:() => 'Each run gets 3 lantern flames instead of 2.' },
+  { id:'sturdy', seal:'寿', title:() => L('Sturdy Spirit', '强健之魂'),    max:4, cost:l => 15 + 10 * l, desc:l => L(`Start every run with +${5 * (l + 1)} max HP.`, `每局开始时最大生命 +${5 * (l + 1)}。`), sealClass:'jade' },
+  { id:'bag',    seal:'囊', title:() => L('Full Bag', '满满行囊'),         max:2, cost:l => 20 + 15 * l, desc:l => L(`Start with ${l + 1} extra Hammer and Lantern.`, `开局额外获得 ${l + 1} 个锤子和灯笼。`), sealClass:'gold' },
+  { id:'coins',  seal:'金', title:() => L('Inheritance', '祖传家财'),      max:2, cost:l => 15 + 10 * l, desc:l => L(`Start with ${15 * (l + 1)} extra coins.`, `开局额外获得 ${15 * (l + 1)} 枚金币。`), sealClass:'gold' },
+  { id:'paws',   seal:'鞭', title:() => L('Trained Paws', '熟练爪法'),     max:1, cost:() => 30, desc:() => L('Start with Firecracker Lv 2.', '开局时鞭炮就是 2 级。') },
+  { id:'gift',   seal:'祖', title:() => L("Ancestor's Gift", '祖先赐福'),  max:1, cost:() => 40, desc:() => L('Start every run with a random relic.', '每局开始时随机获得一件法宝。'), sealClass:'violet' },
+  { id:'flame',  seal:'焰', title:() => L('Third Flame', '第三盏灯火'),    max:1, cost:() => 50, desc:() => L('Each run gets 3 lantern flames instead of 2.', '每局拥有 3 盏灯火，而不是 2 盏。') },
 ];
-function loadMeta() { const m = store('lk_meta') || {}; return { incense: m.incense || 0, ups: m.ups || {}, seenPrologue: !!m.seenPrologue }; }
+function loadMeta() { const m = store('lk_meta') || {}; return { incense: m.incense || 0, ups: m.ups || {}, seenPrologue: !!m.seenPrologue, tutDone: !!m.tutDone }; }
 const saveMeta = m => store('lk_meta', m);
 const clone = o => JSON.parse(JSON.stringify(o));
 function saveRun() { store('lk_save', { run, hero, lastEnemy }); }
@@ -1165,18 +1228,22 @@ function freshHero(meta) {
   const u = meta.ups, mx = 50 + 5 * (u.sturdy || 0);
   return { hp: mx, max: mx, lv: [u.paws ? 2 : 1, 1, 1, 1, 1], palm: 18, chiMax: 12, chi: 0, shield: 0, level: 1, xp: 0, hurt: 0, punch: 0 };
 }
+const PANDA = { who: 'panda', mood: 'happy' }, PANDA_HURT = { who: 'panda', mood: 'hurt' };
 
 async function hall() {
   while (true) {
-    const meta = loadMeta();
-    const v = await modal({
-      kicker: 'Ancestral Hall', title: '祖祠', text: `The ancestors remember every descent. You have ${meta.incense} incense. Blessings last forever.`, portrait: { who: 'panda', mood: 'happy' },
-      cards: HALL.map(h => { const l = meta.ups[h.id] || 0, done = l >= h.max;
-        return { seal: h.seal, sealClass: h.sealClass, title: `${h.title}${h.max > 1 ? ` ${l}/${h.max}` : ''}`, desc: done ? 'Fully blessed.' : h.desc(l), tag: done ? 'Done' : `${h.cost(l)} 香`, value: h.id, disabled: done || meta.incense < h.cost(l) }; }),
-      actions: [{ label: 'Back', value: 'back', quiet: true }],
+    const v = await modal(() => {
+      const meta = loadMeta();
+      return {
+        kicker: L('Ancestral Hall', '祖祠'), title: '祖祠', portrait: PANDA,
+        text: L(`The ancestors remember every descent. You have ${meta.incense} incense. Blessings last forever.`, `祖先记得每一次下行。你有 ${meta.incense} 炷香火。赐福永久有效。`),
+        cards: HALL.map(h => { const l = meta.ups[h.id] || 0, done = l >= h.max;
+          return { seal: h.seal, sealClass: h.sealClass, title: `${h.title()}${h.max > 1 ? ` ${l}/${h.max}` : ''}`, desc: done ? L('Fully blessed.', '已圆满。') : h.desc(l), tag: done ? L('Done', '已满') : `${h.cost(l)} 香`, value: h.id, disabled: done || meta.incense < h.cost(l) }; }),
+        actions: [{ label: L('Back', '返回'), value: 'back', quiet: true }],
+      };
     });
     if (v === 'back') return;
-    const h = HALL.find(x => x.id === v), l = meta.ups[v] || 0;
+    const meta = loadMeta(), h = HALL.find(x => x.id === v), l = meta.ups[v] || 0;
     meta.incense -= h.cost(l); meta.ups[v] = l + 1; saveMeta(meta); sfx(988, 0.15);
   }
 }
@@ -1185,15 +1252,20 @@ async function mainMenu() {
   const meta = loadMeta(), save = store('lk_save'), unlocked = store('lk_dread') || 0;
   run = freshRun(0, meta); hero = freshHero(meta); relicCount = -1;
   previewEnemy('egui'); renderHUD();
-  const cards = [];
-  if (save && save.run) cards.push({ seal: '续', title: 'Continue the night', desc: `Lantern ${save.run.floor} of ${FLOORS}, level ${save.hero.level}, ${save.run.flames} flame${save.run.flames === 1 ? '' : 's'} left.`, value: 'continue', sealClass: 'gold' });
-  cards.push({ seal: '夜', title: save ? 'Start a new night' : 'Step through the gate', desc: save ? 'Abandons the saved run.' : 'The standard descent.', value: 0, sealClass: 'ink' });
-  for (let d = 1; d <= Math.min(5, unlocked); d++) cards.push({ seal: '惧', title: `Dread ${d}`, desc: `Enemies have ${15 * d}% more HP and hit ${10 * d}% harder.${d >= 3 ? ' No starting boosters.' : ''}`, value: d });
-  cards.push({ seal: '祖', title: 'Ancestral Hall', desc: `${meta.incense} incense. Buy blessings that last for every run.`, value: 'hall', sealClass: 'jade' });
-  const v = await modal({ kicker: meta.seenPrologue ? 'The Ghost Gate' : 'Prologue', title: 'The Lantern Keeper',
-    text: meta.seenPrologue ? 'The gate stands open. Grandma\'s lantern is still out there.' : STORY.prologue, story: !meta.seenPrologue, portrait: { who: 'panda', mood: 'happy' }, cards });
+  const v = await modal(() => {
+    const cards = [];
+    if (!meta.tutDone) cards.push({ seal: '教', title: L('New here? Learn to play', '新手？先学玩法'), desc: L('A short guided fight against a hungry ghost.', '跟着引导，和饿鬼打一场简单的战斗。'), value: 'tutorial', sealClass: 'violet' });
+    if (save && save.run) cards.push({ seal: '续', title: L('Continue the night', '继续今夜'), desc: L(`Lantern ${save.run.floor} of ${FLOORS}, level ${save.hero.level}, ${save.run.flames} flame${save.run.flames === 1 ? '' : 's'} left.`, `第 ${save.run.floor}/${FLOORS} 盏灯，等级 ${save.hero.level}，剩余 ${save.run.flames} 盏灯火。`), value: 'continue', sealClass: 'gold' });
+    cards.push({ seal: '夜', title: save ? L('Start a new night', '开始新的一夜') : L('Step through the gate', '踏入鬼门'), desc: save ? L('Abandons the saved run.', '放弃已保存的进度。') : L('The standard descent.', '标准难度。'), value: 0, sealClass: 'ink' });
+    for (let d = 1; d <= Math.min(5, unlocked); d++) cards.push({ seal: '惧', title: L(`Dread ${d}`, `惧意 ${d}`), desc: L(`Enemies have ${15 * d}% more HP and hit ${10 * d}% harder.${d >= 3 ? ' No starting boosters.' : ''}`, `敌人生命 +${15 * d}%，伤害 +${10 * d}%。${d >= 3 ? '开局没有道具。' : ''}`), value: d });
+    cards.push({ seal: '祖', title: L('Ancestral Hall', '祖祠'), desc: L(`${meta.incense} incense. Buy blessings that last for every run.`, `${meta.incense} 炷香火。购买永久生效的赐福。`), value: 'hall', sealClass: 'jade' });
+    if (meta.tutDone) cards.push({ seal: '教', title: L('Replay the tutorial', '重玩新手教学'), desc: L('A short guided fight.', '一场简单的引导战斗。'), value: 'tutorial', sealClass: 'violet' });
+    return { kicker: meta.seenPrologue ? L('The Ghost Gate', '鬼门') : L('Prologue', '序章'), title: L('The Lantern Keeper', '守灯人'),
+      text: meta.seenPrologue ? L("The gate stands open. Grandma's lantern is still out there.", '鬼门大开。奶奶的灯笼还在外面。') : tx(STORY, 'prologue'), story: !meta.seenPrologue, portrait: PANDA, cards };
+  });
   if (!meta.seenPrologue) { meta.seenPrologue = true; saveMeta(meta); }
   if (v === 'hall') { await hall(); return mainMenu(); }
+  if (v === 'tutorial') return tutorial();
   if (v === 'continue') { run = save.run; hero = save.hero; lastEnemy = save.lastEnemy; relicCount = -1; renderHUD(); return runLoop(); }
   run = freshRun(v, meta); hero = freshHero(meta); relicCount = -1;
   if (meta.ups.gift) run.relics.push(pick(Object.keys(RELICS)));
@@ -1209,8 +1281,8 @@ async function runLoop() {
     const act = { 1: 1, 5: 2, 9: 3 }[run.floor];
     if (act && !run.seenActs.includes(act)) {
       run.seenActs.push(act);
-      if (act === 2) await modal({ kicker: 'Act II', title: '黄泉路 Yellow Springs Road', text: STORY.act2, story: true, portrait: { who: 'panda', mood: 'happy' }, actions: [{ label: 'Walk on' }] });
-      if (act === 3) await modal({ kicker: 'Act III', title: '阎罗殿 Yama\'s Court', text: STORY.act3, story: true, portrait: { who: 'panda', mood: 'happy' }, actions: [{ label: 'Enter the court' }] });
+      if (act === 2) await modal(() => ({ kicker: L('Act II', '第二幕'), title: L('黄泉路 Yellow Springs Road', '黄泉路'), text: tx(STORY, 'act2'), story: true, portrait: PANDA, actions: [{ label: L('Walk on', '继续前行') }] }));
+      if (act === 3) await modal(() => ({ kicker: L('Act III', '第三幕'), title: L("阎罗殿 Yama's Court", '阎罗殿'), text: tx(STORY, 'act3'), story: true, portrait: PANDA, actions: [{ label: L('Enter the court', '走进大殿') }] }));
       takeCheckpoint();
     }
     saveRun();
@@ -1221,9 +1293,10 @@ async function runLoop() {
     if (alive) { if (type === 'elite') run.guardians++; run.floor++; continue; }
     if (run.flames > 0 && run.checkpoint) {
       const cp = run.checkpoint, a = actOf(cp.run.floor);
-      const go = await modal({ kicker: 'The lantern gutters', title: 'Relight a flame?',
-        text: `Bao has ${run.flames} lantern flame${run.flames === 1 ? '' : 's'} left. Spend one to return to the start of Act ${['I', 'II', 'III'][a - 1]}, with the level, skills and relics Bao had then.`,
-        portrait: { who: 'panda', mood: 'hurt' }, actions: [{ label: 'Relight a flame', value: 'yes' }, { label: 'Let it go out', value: 'no', quiet: true }] });
+      const go = await modal(() => ({ kicker: L('The lantern gutters', '灯火将熄'), title: L('Relight a flame?', '重燃灯火？'),
+        text: L(`Bao has ${run.flames} lantern flame${run.flames === 1 ? '' : 's'} left. Spend one to return to the start of Act ${['I', 'II', 'III'][a - 1]}, with the level, skills and relics Bao had then.`,
+                `宝宝还剩 ${run.flames} 盏灯火。用掉一盏，就能回到第${['一', '二', '三'][a - 1]}幕的开头，保留当时的等级、技能和法宝。`),
+        portrait: PANDA_HURT, actions: [{ label: L('Relight a flame', '重燃灯火'), value: 'yes' }, { label: L('Let it go out', '让它熄灭'), value: 'no', quiet: true }] }));
       if (go === 'yes') {
         const flames = run.flames - 1;
         run = clone(cp.run); hero = clone(cp.hero); run.flames = flames; run.checkpoint = cp; relicCount = -1;
@@ -1247,9 +1320,14 @@ async function endRun(won) {
   if (won) {
     const unlocked = store('lk_dread') || 0, next = Math.min(5, Math.max(unlocked, run.dread + 1));
     store('lk_dread', next);
-    await modal({ kicker: 'Dawn', title: '天亮了 Daybreak', text: STORY.ending + `\n\n+${earned} incense for the Ancestral Hall.` + (next > unlocked ? ` Dread ${next} unlocked.` : ''), story: true, actions: [{ label: 'Return to the gate' }], portrait: { who: 'panda', mood: 'happy' } });
+    await modal(() => ({ kicker: L('Dawn', '黎明'), title: L('天亮了 Daybreak', '天亮了'), story: true, portrait: PANDA,
+      text: tx(STORY, 'ending') + L(`\n\n+${earned} incense for the Ancestral Hall.`, `\n\n获得 ${earned} 炷香火，可在祖祠使用。`) + (next > unlocked ? L(` Dread ${next} unlocked.`, `已解锁惧意 ${next}。`) : ''),
+      actions: [{ label: L('Return to the gate', '回到鬼门') }] }));
   } else {
-    await modal({ kicker: 'The last flame goes out', title: 'Bao fainted', text: `Bao fell at lantern ${run.floor} of ${FLOORS}, level ${hero.level}. The ancestors saw it all: +${earned} incense for the Ancestral Hall. Farthest lantern so far: ${Math.min(best, FLOORS)}.`, actions: [{ label: 'Return to the gate' }], portrait: { who: 'panda', mood: 'hurt' } });
+    await modal(() => ({ kicker: L('The last flame goes out', '最后一盏灯火熄灭了'), title: L('Bao fainted', '宝宝倒下了'), portrait: PANDA_HURT,
+      text: L(`Bao fell at lantern ${run.floor} of ${FLOORS}, level ${hero.level}. The ancestors saw it all: +${earned} incense for the Ancestral Hall. Farthest lantern so far: ${Math.min(best, FLOORS)}.`,
+              `宝宝倒在了第 ${run.floor}/${FLOORS} 盏灯，等级 ${hero.level}。祖先都看在眼里：获得 ${earned} 炷香火。目前最远到达第 ${Math.min(best, FLOORS)} 盏灯。`),
+      actions: [{ label: L('Return to the gate', '回到鬼门') }] }));
   }
 }
 
@@ -1274,12 +1352,13 @@ async function chooseNode() {
     if (f === FLOORS - 1 && !opts.includes('rest')) opts[2] = 'rest';
   }
   renderHUD(f);
-  return modal({
-    kicker: `Lantern ${f} of ${FLOORS}`, title: f === FLOORS ? 'The court doors open' : opts.length > 1 ? 'The road forks' : 'Something guards the way',
-    text: opts.length > 1 ? 'Choose where to light the next lantern.' : NODES[opts[0]].desc,
-    cards: opts.map(o => ({ seal: NODES[o].seal, title: NODES[o].name, desc: NODES[o].desc, value: o, sealClass: o === 'shop' || o === 'event' ? 'gold' : o === 'rest' ? 'jade' : o === 'challenge' ? 'violet' : '' })),
-    portrait: { who: 'panda', mood: 'happy' },
-  });
+  return modal(() => ({
+    kicker: L(`Lantern ${f} of ${FLOORS}`, `第 ${f}/${FLOORS} 盏灯`),
+    title: f === FLOORS ? L('The court doors open', '殿门大开') : opts.length > 1 ? L('The road forks', '岔路口') : L('Something guards the way', '有东西拦路'),
+    text: opts.length > 1 ? L('Choose where to light the next lantern.', '选择下一盏灯点在哪里。') : tx(NODES[opts[0]], 'desc'),
+    cards: opts.map(o => ({ seal: NODES[o].seal, title: tx(NODES[o], 'name'), desc: tx(NODES[o], 'desc'), value: o, sealClass: o === 'shop' || o === 'event' ? 'gold' : o === 'rest' ? 'jade' : o === 'challenge' ? 'violet' : '' })),
+    portrait: PANDA,
+  }));
 }
 async function playNode(type) {
   if (type === 'battle' || type === 'elite' || type === 'boss') {
@@ -1315,15 +1394,15 @@ async function runBattle(kind) {
   }
   lastEnemy = key;
   enemy = makeEnemy(key, kind === 'battle');
-  if (enemy.intro) await modal({ kicker: kind === 'boss' ? 'Final guardian' : 'Guardian', title: `${enemy.name} ${enemy.cn}`, text: enemy.intro, story: true, portrait: { who: 'enemy' }, actions: [{ label: 'Fight' }] });
+  if (enemy.intro) await modal(() => ({ kicker: kind === 'boss' ? L('Final guardian', '最终守关者') : L('Guardian', '守关者'), title: full(enemy), text: tx(enemy, 'intro'), story: true, portrait: { who: 'enemy' }, actions: [{ label: L('Fight', '迎战') }] }));
   hero.shield = hasRelic('redstring') ? 8 : 0;
   const p = playStage({ type: 'battle', kind }, ENEMIES[key].start, () => nextIntent(true));
   setLog(run.floor === 1 && kind === 'battle'
-    ? 'The hungry ghost drools over 3 tiles. Clear those marked tiles before its countdown ends, or it eats them and heals.'
+    ? L('The hungry ghost drools over 3 tiles. Clear those marked tiles before its countdown ends, or it eats them and heals.', '饿鬼对着 3 个方块流口水。在倒计时结束前消除这些标记方块，否则它会吃掉它们并回血。')
     : intentIntro(enemy.intent));
   renderHUD();
   const res = await p;
-  if (res === 'win' && enemy.outro) await modal({ kicker: 'Victory', title: `${enemy.name} falls`, text: enemy.outro, story: true, portrait: { who: 'enemy', hurt: true }, actions: [{ label: 'Continue' }] });
+  if (res === 'win' && enemy.outro) await modal(() => ({ kicker: L('Victory', '胜利'), title: L(`${enemy.name} falls`, `${short(enemy)}倒下了`), text: tx(enemy, 'outro'), story: true, portrait: { who: 'enemy', hurt: true }, actions: [{ label: L('Continue', '继续') }] }));
   return res;
 }
 
@@ -1331,19 +1410,22 @@ async function runChallenge() {
   const tpl = pick(CHALLENGES);
   const goals = tpl.goals.map(g => ({ ...g, got: 0 }));
   const moves = tpl.moves + (hasRelic('abacus') ? 4 : 0);
-  const p = playStage({ type: 'challenge', name: tpl.name, cn: tpl.cn, desc: tpl.desc, goals, moves }, tpl.setup);
-  setLog(`${tpl.name}: ${tpl.desc.toLowerCase()} in ${moves} moves. Rockets fly at whatever you need.`);
+  const p = playStage({ type: 'challenge', tpl, goals, moves }, tpl.setup);
+  setLog(L(`${tpl.name}: ${tpl.desc.toLowerCase()} in ${moves} moves. Rockets fly at whatever you need.`, `${tpl.cn}：在 ${moves} 步内${tpl.descZh}。火箭会自动飞向需要的目标。`));
   const res = await p;
   if (res === 'win') {
     const bonus = Math.round(stage.moves * 2 * coinMul());
     run.coins += bonus; if (hasRelic('bun')) healHero(6);
     renderHUD();
-    await modal({ kicker: 'Trial passed', title: `${tpl.name} ${tpl.cn}`, text: `${stage.moves} spare moves turn into ${bonus} coins. +14 XP.`, actions: [{ label: 'Choose a relic' }], portrait: { who: 'panda', mood: 'happy' } });
+    const spare = stage.moves;
+    await modal(() => ({ kicker: L('Trial passed', '试炼通过'), title: full(tpl), text: L(`${spare} spare moves turn into ${bonus} coins. +14 XP.`, `剩余 ${spare} 步换成 ${bonus} 枚金币。经验 +14。`), actions: [{ label: L('Choose a relic', '选择法宝') }], portrait: PANDA }));
     await gainXP(14);
     await relicPick();
   } else {
     hero.hp = Math.max(0, hero.hp - 12); hero.hurt = 0.5; renderHUD();
-    await modal({ kicker: 'Trial failed', title: 'Out of moves', text: hero.hp > 0 ? 'The fog closes in and Bao stumbles through it, losing 12 HP.' : 'The fog closes in. Bao\'s lantern gutters.', actions: [{ label: 'Continue' }], portrait: { who: 'panda', mood: 'hurt' } });
+    await modal(() => ({ kicker: L('Trial failed', '试炼失败'), title: L('Out of moves', '步数用完了'),
+      text: hero.hp > 0 ? L('The fog closes in and Bao stumbles through it, losing 12 HP.', '迷雾涌来，宝宝跌跌撞撞地穿过迷雾，失去 12 点生命。') : L("The fog closes in. Bao's lantern gutters.", '迷雾涌来，宝宝的灯火熄灭了。'),
+      actions: [{ label: L('Continue', '继续') }], portrait: PANDA_HURT }));
   }
 }
 
@@ -1351,10 +1433,12 @@ async function battleRewards(kind) {
   const coins = Math.round((kind === 'elite' ? 22 : 8 + run.floor) * coinMul());
   const xp = kind === 'elite' ? 30 : 12 + run.floor * 2;
   run.coins += coins;
-  let extra = '';
-  if (hasRelic('bun')) { const h = healHero(6); if (h) extra = ` The steamed bun heals ${h}.`; }
+  let healed = 0;
+  if (hasRelic('bun')) healed = healHero(6);
   renderHUD();
-  if (kind !== 'elite') await modal({ kicker: 'Victory', title: `${enemy.name} fades`, text: `+${coins} coins, +${xp} XP.${extra}`, actions: [{ label: 'Collect' }], portrait: { who: 'panda', mood: 'happy' } });
+  if (kind !== 'elite') await modal(() => ({ kicker: L('Victory', '胜利'), title: L(`${enemy.name} fades`, `${short(enemy)}消散了`),
+    text: L(`+${coins} coins, +${xp} XP.${healed ? ` The steamed bun heals ${healed}.` : ''}`, `金币 +${coins}，经验 +${xp}。${healed ? `包子回复了 ${healed} 点生命。` : ''}`),
+    actions: [{ label: L('Collect', '收下') }], portrait: PANDA }));
   await gainXP(xp);
   if (kind === 'elite') await relicPick(); else await treatPick();
 }
@@ -1365,64 +1449,69 @@ async function gainXP(n) {
     hero.xp -= xpNeed(); hero.level++; hero.max += 3; healHero(6); renderHUD();
     sfx(784, 0.2); setTimeout(() => sfx(1046, 0.25), 150);
     const ups = weightedPick(upgradePool(), 3);
-    const u = await modal({ kicker: 'Level up', title: `Level ${hero.level}`, text: 'Bao grows stronger: +3 max HP and 6 HP back. Learn one new skill.', cards: ups.map(cardOf), portrait: { who: 'panda', mood: 'happy' } });
+    const u = await modal(() => ({ kicker: L('Level up', '升级'), title: L(`Level ${hero.level}`, `等级 ${hero.level}`), text: L('Bao grows stronger: +3 max HP and 6 HP back. Learn one new skill.', '宝宝变强了：最大生命 +3，回复 6 点生命。学习一项新技能。'), cards: ups.map(u => cardOf(u)), portrait: PANDA }));
     u.apply(); renderHUD();
   }
 }
-const cardOf = u => ({ seal: u.seal, title: u.title, desc: u.desc, value: u, sealClass: u.sealClass });
+const cardOf = u => ({ seal: u.seal, title: typeof u.title === 'function' ? u.title() : u.title, desc: typeof u.desc === 'function' ? u.desc() : u.desc, value: u, sealClass: u.sealClass });
 function gemUpDesc(t, lv) {
-  return [`Each firecracker deals ${2 + lv} damage (now ${1 + lv}).`, `Each jade gives ${1 + lv} shield (now ${lv}).`,
-    `Each pair of peaches heals ${lv} HP (now ${lv - 1}).`, `Each joss gold gives ${lv} chi (now ${lv - 1}).`, `Each pair of bells clears ${lv} marks or seals (now ${lv - 1}).`][t];
+  return L([`Each firecracker deals ${2 + lv} damage (now ${1 + lv}).`, `Each jade gives ${1 + lv} shield (now ${lv}).`,
+    `Each pair of peaches heals ${lv} HP (now ${lv - 1}).`, `Each joss gold gives ${lv} chi (now ${lv - 1}).`, `Each pair of bells clears ${lv} marks or seals (now ${lv - 1}).`][t],
+    [`每个鞭炮造成 ${2 + lv} 点伤害（当前 ${1 + lv}）。`, `每个玉璧提供 ${1 + lv} 点护盾（当前 ${lv}）。`,
+    `每 2 个寿桃回复 ${lv} 点生命（当前 ${lv - 1}）。`, `每个元宝提供 ${lv} 点气（当前 ${lv - 1}）。`, `每 2 个铜铃清除 ${lv} 个标记或符咒（当前 ${lv - 1}）。`][t]);
 }
+const gemUpTitle = (t, n) => L(`${GEM[t].name} Lv ${n}`, `${GEM[t].cn} ${n} 级`);
 function upgradePool() {
   const list = [];
   const sc = ['', 'jade', '', 'gold', 'violet'];
-  for (let t = 0; t < 5; t++) list.push({ seal: GEM[t].cn[0], title: `${GEM[t].name} Lv ${hero.lv[t] + 1}`, desc: gemUpDesc(t, hero.lv[t] + 1), apply: () => hero.lv[t]++, w: 3, sealClass: sc[t] });
-  list.push({ seal: '寿', title: 'Longevity', desc: '+10 max HP and heal 10.', apply: () => { hero.max += 10; healHero(10); }, w: 1, sealClass: 'jade' });
-  list.push({ seal: '掌', title: 'Iron Palm', desc: `Kung Fu Palm deals ${hero.palm + 10} damage (now ${hero.palm}).`, apply: () => hero.palm += 10, w: 1 });
-  if (hero.chiMax > 6) list.push({ seal: '气', title: 'Deep Breath', desc: `Kung Fu Palm needs ${hero.chiMax - 2} chi (now ${hero.chiMax}).`, apply: () => hero.chiMax -= 2, w: 1, sealClass: 'gold' });
+  for (let t = 0; t < 5; t++) { const n = hero.lv[t] + 1; list.push({ seal: GEM[t].cn[0], title: () => gemUpTitle(t, n), desc: () => gemUpDesc(t, n), apply: () => hero.lv[t]++, w: 3, sealClass: sc[t] }); }
+  list.push({ seal: '寿', title: () => L('Longevity', '长寿'), desc: () => L('+10 max HP and heal 10.', '最大生命 +10，并回复 10 点生命。'), apply: () => { hero.max += 10; healHero(10); }, w: 1, sealClass: 'jade' });
+  const p = hero.palm; list.push({ seal: '掌', title: () => L('Iron Palm', '铁掌'), desc: () => L(`Kung Fu Palm deals ${p + 10} damage (now ${p}).`, `功夫掌造成 ${p + 10} 点伤害（当前 ${p}）。`), apply: () => hero.palm += 10, w: 1 });
+  const c = hero.chiMax; if (c > 6) list.push({ seal: '气', title: () => L('Deep Breath', '深呼吸'), desc: () => L(`Kung Fu Palm needs ${c - 2} chi (now ${c}).`, `功夫掌只需 ${c - 2} 点气（当前 ${c}）。`), apply: () => hero.chiMax -= 2, w: 1, sealClass: 'gold' });
   return list;
 }
-function relicCard(id) { const R = RELICS[id]; return { seal: R.cn[0], title: `${R.name} ${R.cn}`, desc: R.desc, sealClass: 'gold', apply: () => { run.relics.push(id); renderRelics(); } }; }
+function relicCard(id) { const R = RELICS[id]; return { seal: R.cn[0], title: () => L(`${R.name} ${R.cn}`, R.zh), desc: () => tx(R, 'desc'), sealClass: 'gold', apply: () => { run.relics.push(id); renderRelics(); } }; }
 const unownedRelics = () => Object.keys(RELICS).filter(id => !run.relics.includes(id));
 async function relicPick() {
   const ids = shuffleArr(unownedRelics()).slice(0, 3);
   if (!ids.length) { run.coins += 30; renderHUD(); return; }
-  const u = await modal({ kicker: 'Relic', title: 'Choose a relic', text: 'Relics last for the whole descent.', cards: ids.map(id => cardOf(relicCard(id))) });
+  const opts = ids.map(relicCard);
+  const u = await modal(() => ({ kicker: L('Relic', '法宝'), title: L('Choose a relic', '选择一件法宝'), text: L('Relics last for the whole descent.', '法宝在整局中持续生效。'), cards: opts.map(cardOf) }));
   u.apply(); renderHUD();
 }
 const ITEMS = {
-  hammer:  { seal:'锤', title:'Hammer',    desc:'Smash any one tile. Free action.', sealClass:'ink' },
-  swap:    { seal:'换', title:'Free Swap', desc:'Swap any two neighbors, no match needed. Free action.', sealClass:'jade' },
-  lantern: { seal:'灯', title:'Lantern',   desc:'Turn any tile into a lantern bomb.', sealClass:'gold' },
+  hammer:  { seal:'锤', title:() => L('Hammer', '锤子'),       desc:() => L('Smash any one tile. Free action.', '砸碎任意一个方块，不消耗步数。'), sealClass:'ink' },
+  swap:    { seal:'换', title:() => L('Free Swap', '自由交换'), desc:() => L('Swap any two neighbors, no match needed. Free action.', '交换任意两个相邻方块，无需消除，不消耗步数。'), sealClass:'jade' },
+  lantern: { seal:'灯', title:() => L('Lantern', '灯笼'),      desc:() => L('Turn any tile into a lantern bomb.', '把任意方块变成灯笼炸弹。'), sealClass:'gold' },
 };
-function itemCard(id, n = 1) { const I = ITEMS[id]; return { ...I, title: n > 1 ? `${I.title} ×${n}` : I.title, apply: () => run.items[id] += n }; }
+function itemCard(id) { return { ...ITEMS[id], apply: () => run.items[id] += 1 }; }
 async function treatPick() {
   const opts = shuffleArr([itemCard('hammer'), itemCard('swap'), itemCard('lantern'),
-    { seal:'桃', title:'Peach Buns', desc:'Heal 12 HP.', sealClass:'jade', apply: () => healHero(12) },
-    { seal:'金', title:'Joss Paper', desc:'+12 coins.', sealClass:'gold', apply: () => run.coins += 12 }]).slice(0, 3);
+    { seal:'桃', title:() => L('Peach Buns', '寿桃包'), desc:() => L('Heal 12 HP.', '回复 12 点生命。'), sealClass:'jade', apply: () => healHero(12) },
+    { seal:'金', title:() => L('Joss Paper', '纸钱'), desc:() => L('+12 coins.', '金币 +12。'), sealClass:'gold', apply: () => run.coins += 12 }]).slice(0, 3);
   const un = unownedRelics();
   if (un.length && Math.random() < 0.2) opts[2] = relicCard(pick(un));
-  const u = await modal({ kicker: 'Spoils', title: 'Take one', text: 'Boosters stay in your bag until you use them.', cards: opts.map(cardOf) });
+  const u = await modal(() => ({ kicker: L('Spoils', '战利品'), title: L('Take one', '选一样'), text: L('Boosters stay in your bag until you use them.', '道具会留在背包里，直到你使用。'), cards: opts.map(cardOf) }));
   u.apply(); renderHUD();
 }
 
 async function shop() {
-  const gemT = rnd(5);
+  const gemT = rnd(5), gn = hero.lv[gemT] + 1;
   const offers = shuffleArr([
     { ...itemCard('hammer'), cost: 12 }, { ...itemCard('swap'), cost: 10 }, { ...itemCard('lantern'), cost: 14 },
-    { seal:'桃', title:'Peach Buns', desc:'Heal 18 HP.', sealClass:'jade', cost: 15, apply: () => healHero(18) },
-    { seal: GEM[gemT].cn[0], title: `${GEM[gemT].name} Lv ${hero.lv[gemT] + 1}`, desc: gemUpDesc(gemT, hero.lv[gemT] + 1), cost: 35, apply: () => hero.lv[gemT]++ },
-    { seal:'寿', title:'Longevity', desc:'+8 max HP and heal 8.', sealClass:'jade', cost: 28, apply: () => { hero.max += 8; healHero(8); } },
+    { seal:'桃', title:() => L('Peach Buns', '寿桃包'), desc:() => L('Heal 18 HP.', '回复 18 点生命。'), sealClass:'jade', cost: 15, apply: () => healHero(18) },
+    { seal: GEM[gemT].cn[0], title:() => gemUpTitle(gemT, gn), desc:() => gemUpDesc(gemT, gn), cost: 35, apply: () => hero.lv[gemT]++ },
+    { seal:'寿', title:() => L('Longevity', '长寿'), desc:() => L('+8 max HP and heal 8.', '最大生命 +8，并回复 8 点生命。'), sealClass:'jade', cost: 28, apply: () => { hero.max += 8; healHero(8); } },
   ]).slice(0, 4);
   const un = unownedRelics();
   if (un.length) offers.push({ ...relicCard(pick(un)), cost: 55 });
   while (true) {
-    const choice = await modal({
-      kicker: 'Ghost Market', title: '鬼市', text: `Faceless vendors whisper prices. You have ${run.coins} coins.`, portrait: { who: 'panda', mood: 'happy' },
-      cards: offers.map(o => ({ ...cardOf(o), value: o, tag: o.sold ? 'Sold' : o.cost, coinTag: !o.sold, disabled: o.sold || run.coins < o.cost })),
-      actions: [{ label: 'Leave the market', value: 'leave', quiet: true }],
-    });
+    const choice = await modal(() => ({
+      kicker: L('Ghost Market', '鬼市'), title: '鬼市', portrait: PANDA,
+      text: L(`Faceless vendors whisper prices. You have ${run.coins} coins.`, `没有脸的摊主低声报价。你有 ${run.coins} 枚金币。`),
+      cards: offers.map(o => ({ ...cardOf(o), value: o, tag: o.sold ? L('Sold', '售罄') : o.cost, coinTag: !o.sold, disabled: o.sold || run.coins < o.cost })),
+      actions: [{ label: L('Leave the market', '离开鬼市'), value: 'leave', quiet: true }],
+    }));
     if (choice === 'leave') break;
     run.coins -= choice.cost; choice.apply(); choice.sold = true; sfx(988, 0.12); renderHUD();
   }
@@ -1430,44 +1519,50 @@ async function shop() {
 async function rest() {
   const amt = Math.round(hero.max * 0.35);
   const ups = weightedPick(upgradePool(), 2);
-  const u = await modal({
-    kicker: 'Ancestral Shrine', title: '祠堂', text: 'Rows of ancestor tablets glow in the incense smoke. Rest a while, or practice before them.', portrait: { who: 'panda', mood: 'happy' },
-    cards: [{ seal: '香', title: 'Light incense', desc: `Heal ${amt} HP.`, sealClass: 'jade', apply: () => healHero(amt) }, ...ups].map(cardOf),
-  });
+  const opts = [{ seal: '香', title: () => L('Light incense', '上香'), desc: () => L(`Heal ${amt} HP.`, `回复 ${amt} 点生命。`), sealClass: 'jade', apply: () => healHero(amt) }, ...ups];
+  const u = await modal(() => ({
+    kicker: L('Ancestral Shrine', '祠堂'), title: '祠堂', portrait: PANDA,
+    text: L('Rows of ancestor tablets glow in the incense smoke. Rest a while, or practice before them.', '一排排祖先牌位在香烟中微微发光。歇一会儿，或在祖先面前修炼。'),
+    cards: opts.map(cardOf),
+  }));
   u.apply(); renderHUD();
 }
 async function encounter() {
   const kind = pick(['sticks', 'child', 'stall', 'shrine']);
-  const P = { who: 'panda', mood: 'happy' };
+  const walk = (en, zh) => ({ seal: '走', title: L('Walk on', '离开'), desc: L(en, zh), value: 'no' });
   if (kind === 'sticks') {
-    const go = await modal({ kicker: 'Strange encounter', title: 'Fortune Sticks 求签', text: 'A fortune teller with no face holds out a bamboo cup. "One stick, one fate."', portrait: P,
-      cards: [{ seal: '签', title: 'Shake the cup', desc: 'Your luck decides.', value: 'yes', sealClass: 'gold' }, { seal: '走', title: 'Walk on', desc: 'Nothing happens.', value: 'no' }] });
+    const go = await modal(() => ({ kicker: L('Strange encounter', '奇遇'), title: L('Fortune Sticks 求签', '求签'), portrait: PANDA,
+      text: L('A fortune teller with no face holds out a bamboo cup. "One stick, one fate."', '一个没有脸的算命先生递来一个签筒。“一签，一命。”'),
+      cards: [{ seal: '签', title: L('Shake the cup', '摇签筒'), desc: L('Your luck decides.', '看你的运气。'), value: 'yes', sealClass: 'gold' }, walk('Nothing happens.', '什么也不会发生。')] }));
     if (go !== 'yes') return;
     const roll = Math.random(), un = unownedRelics();
-    let title, text, mood = 'happy';
-    if (roll < 0.15 && un.length) { const id = pick(un); run.relics.push(id); title = '上上签 Great fortune'; text = `The fortune teller bows and hands you the ${RELICS[id].name}: ${RELICS[id].desc}`; }
-    else if (roll < 0.45) { run.coins += 20; title = '上签 Good fortune'; text = 'Coins spill out with the stick. +20 coins.'; }
-    else if (roll < 0.7) { const h = healHero(10); title = '中签 Fair fortune'; text = `A quiet, steady stick. Bao heals ${h} HP.`; }
-    else { hero.hp = Math.max(1, hero.hp - 10); title = '下签 Ill fortune'; text = 'The stick is black. Something cold brushes past Bao. −10 HP.'; mood = 'hurt'; }
+    let res;
+    if (roll < 0.15 && un.length) { const R = RELICS[pick(un)]; run.relics.push(Object.keys(RELICS).find(k => RELICS[k] === R)); res = () => [L('上上签 Great fortune', '上上签'), L(`The fortune teller bows and hands you the ${R.name}: ${R.desc}`, `算命先生鞠了一躬，递给你一件${R.zh}：${R.descZh}`), 'happy']; }
+    else if (roll < 0.45) { run.coins += 20; res = () => [L('上签 Good fortune', '上签'), L('Coins spill out with the stick. +20 coins.', '签筒里掉出了金币。金币 +20。'), 'happy']; }
+    else if (roll < 0.7) { const h = healHero(10); res = () => [L('中签 Fair fortune', '中签'), L(`A quiet, steady stick. Bao heals ${h} HP.`, `一支平稳的签。宝宝回复了 ${h} 点生命。`), 'happy']; }
+    else { hero.hp = Math.max(1, hero.hp - 10); res = () => [L('下签 Ill fortune', '下签'), L('The stick is black. Something cold brushes past Bao. −10 HP.', '签是黑色的。有什么冰冷的东西擦过宝宝身边。生命 −10。'), 'hurt']; }
     renderHUD();
-    await modal({ kicker: 'Fortune', title, text, actions: [{ label: 'Continue' }], portrait: { who: 'panda', mood } });
+    await modal(() => { const [title, text, mood] = res(); return { kicker: L('Fortune', '签文'), title, text, actions: [{ label: L('Continue', '继续') }], portrait: { who: 'panda', mood } }; });
   } else if (kind === 'child') {
-    const go = await modal({ kicker: 'Strange encounter', title: 'A Small Ghost 小鬼', text: 'A tiny ghost tugs at Bao\'s sleeve. It has not eaten in a hundred years.', portrait: P,
-      cards: [{ seal: '喂', title: 'Feed it', desc: 'Pay 12 coins. It gives you something back.', tag: 12, coinTag: true, value: 'feed', disabled: run.coins < 12 },
-              { seal: '桃', title: 'Share your peach', desc: 'Lose 8 HP. Peach skill +1.', value: 'peach', disabled: hero.hp <= 8 },
-              { seal: '走', title: 'Walk on', desc: 'It watches you go.', value: 'no' }] });
-    if (go === 'feed') { run.coins -= 12; run.items.lantern++; run.items.hammer++; await modal({ kicker: 'Small ghost', title: 'It smiles', text: 'It presses a lantern and a hammer into Bao\'s paws, then fades.', actions: [{ label: 'Continue' }], portrait: P }); }
+    const go = await modal(() => ({ kicker: L('Strange encounter', '奇遇'), title: L('A Small Ghost 小鬼', '小鬼'), portrait: PANDA,
+      text: L("A tiny ghost tugs at Bao's sleeve. It has not eaten in a hundred years.", '一个小鬼拉了拉宝宝的袖子。它已经一百年没吃东西了。'),
+      cards: [{ seal: '喂', title: L('Feed it', '喂它'), desc: L('Pay 12 coins. It gives you something back.', '花 12 枚金币。它会回报你。'), tag: 12, coinTag: true, value: 'feed', disabled: run.coins < 12 },
+              { seal: '桃', title: L('Share your peach', '分它寿桃'), desc: L('Lose 8 HP. Peach skill +1.', '失去 8 点生命。寿桃技能 +1。'), value: 'peach', disabled: hero.hp <= 8 },
+              walk('It watches you go.', '它目送你离开。')] }));
+    if (go === 'feed') { run.coins -= 12; run.items.lantern++; run.items.hammer++; await modal(() => ({ kicker: L('Small ghost', '小鬼'), title: L('It smiles', '它笑了'), text: L("It presses a lantern and a hammer into Bao's paws, then fades.", '它把一个灯笼和一把锤子塞进宝宝的爪子里，然后消失了。'), actions: [{ label: L('Continue', '继续') }], portrait: PANDA })); }
     if (go === 'peach') { hero.hp -= 8; hero.lv[2]++; }
   } else if (kind === 'stall') {
-    const go = await modal({ kicker: 'Strange encounter', title: 'Ghost Candy Stall 鬼糖', text: 'A vendor sells candy shaped like little skulls. They smell like osmanthus.', portrait: P,
-      cards: [{ seal: '糖', title: 'Buy a bag', desc: 'Heal 20 HP and gain 4 max HP.', tag: 14, coinTag: true, value: 'buy', disabled: run.coins < 14 },
-              { seal: '走', title: 'Walk on', desc: 'Save your coins.', value: 'no' }] });
+    const go = await modal(() => ({ kicker: L('Strange encounter', '奇遇'), title: L('Ghost Candy Stall 鬼糖', '鬼糖摊'), portrait: PANDA,
+      text: L('A vendor sells candy shaped like little skulls. They smell like osmanthus.', '摊主卖的糖果像一个个小骷髅，闻起来却是桂花香。'),
+      cards: [{ seal: '糖', title: L('Buy a bag', '买一袋'), desc: L('Heal 20 HP and gain 4 max HP.', '回复 20 点生命，最大生命 +4。'), tag: 14, coinTag: true, value: 'buy', disabled: run.coins < 14 },
+              walk('Save your coins.', '省下金币。')] }));
     if (go === 'buy') { run.coins -= 14; hero.max += 4; healHero(20); }
   } else {
     const t = rnd(5);
-    const go = await modal({ kicker: 'Strange encounter', title: 'Roadside Shrine 土地庙', text: 'A crumbling shrine to the Earth God. Joss paper ashes are still warm.', portrait: P,
-      cards: [{ seal: '烧', title: 'Burn joss paper', desc: `Pay 18 coins. ${GEM[t].name} skill +1.`, tag: 18, coinTag: true, value: 'burn', disabled: run.coins < 18 },
-              { seal: '拜', title: 'Bow three times', desc: 'Heal 6 HP.', value: 'bow' }] });
+    const go = await modal(() => ({ kicker: L('Strange encounter', '奇遇'), title: L('Roadside Shrine 土地庙', '土地庙'), portrait: PANDA,
+      text: L('A crumbling shrine to the Earth God. Joss paper ashes are still warm.', '一座破旧的土地庙，纸钱的灰烬还是温的。'),
+      cards: [{ seal: '烧', title: L('Burn joss paper', '烧纸钱'), desc: L(`Pay 18 coins. ${GEM[t].name} skill +1.`, `花 18 枚金币。${GEM[t].cn}技能 +1。`), tag: 18, coinTag: true, value: 'burn', disabled: run.coins < 18 },
+              { seal: '拜', title: L('Bow three times', '拜三拜'), desc: L('Heal 6 HP.', '回复 6 点生命。'), value: 'bow' }] }));
     if (go === 'burn') { run.coins -= 18; hero.lv[t]++; }
     if (go === 'bow') healHero(6);
   }
@@ -1475,53 +1570,194 @@ async function encounter() {
 }
 function showHelp() {
   if (!$('overlay').hidden) return;
-  const lv = hero.lv, P = (t, sp, extra) => ctx => drawPiece(ctx, { kind: 'gem', t, sp, lock: 0, phase: 9, ...(extra || {}) }, 70, 1.2);
-  modal({ kicker: 'How to play', title: 'Tiles and threats', cards: [
-    { draw: P(0), title: `Firecracker · Lv ${lv[0]}`, desc: `Each one deals ${2 + lv[0]} damage.` },
-    { draw: P(1), title: `Jade · Lv ${lv[1]}`, desc: `Each one gives ${1 + lv[1]} shield. Shield halves after the enemy acts.` },
-    { draw: P(2), title: `Peach · Lv ${lv[2]}`, desc: `Every 2 peaches heal ${lv[2]} HP.` },
-    { draw: P(3), title: `Joss Gold · Lv ${lv[3]}`, desc: `Each one gives 1 coin and ${lv[3]} chi for the Kung Fu Palm.` },
-    { draw: P(4), title: `Bell · Lv ${lv[4]}`, desc: `Every 2 bells clear ${lv[4]} enemy mark or paper seal anywhere.` },
-    { draw: P(0, 'h'), title: 'Line blast · 4 in a row', desc: 'Clears the whole row or column the arrow points along.' },
-    { draw: P(1, 'bomb'), title: 'Lantern bomb · L or T shape', desc: 'Blasts the 3×3 area around it.' },
-    { draw: P(2, 'rocket'), title: 'Rocket · 2×2 square', desc: 'Flies straight at a marked tile, seal or tombstone, or at the enemy.' },
-    { draw: P(-1, 'rainbow'), title: 'Lucky ball · 5 in a row', desc: 'Swap it with a tile to clear every tile of that color.' },
-    { draw: P(4, null, { mark: { type: 'fire' } }), title: 'Marked tiles', desc: 'Enemy threats. Clear the tile before the countdown ends to cancel that part of the attack.' },
-  ].map(c => ({ ...c, value: null, disabled: false, passive: true })), actions: [{ label: 'Back to the board' }] });
+  const P = (t, sp, extra) => ctx => drawPiece(ctx, { kind: 'gem', t, sp, lock: 0, phase: 9, ...(extra || {}) }, 70, 1.2);
+  modal(() => { const lv = hero.lv; return { kicker: L('How to play', '玩法说明'), title: L('Tiles and threats', '方块与威胁'), cards: [
+    { draw: P(0), title: L(`Firecracker · Lv ${lv[0]}`, `鞭炮 · ${lv[0]} 级`), desc: L(`Each one deals ${2 + lv[0]} damage.`, `每个造成 ${2 + lv[0]} 点伤害。`) },
+    { draw: P(1), title: L(`Jade · Lv ${lv[1]}`, `玉璧 · ${lv[1]} 级`), desc: L(`Each one gives ${1 + lv[1]} shield. Shield halves after the enemy acts.`, `每个提供 ${1 + lv[1]} 点护盾。敌人行动后护盾减半。`) },
+    { draw: P(2), title: L(`Peach · Lv ${lv[2]}`, `寿桃 · ${lv[2]} 级`), desc: L(`Every 2 peaches heal ${lv[2]} HP.`, `每 2 个寿桃回复 ${lv[2]} 点生命。`) },
+    { draw: P(3), title: L(`Joss Gold · Lv ${lv[3]}`, `元宝 · ${lv[3]} 级`), desc: L(`Each one gives 1 coin and ${lv[3]} chi for the Kung Fu Palm.`, `每个提供 1 枚金币和 ${lv[3]} 点气，用于功夫掌。`) },
+    { draw: P(4), title: L(`Bell · Lv ${lv[4]}`, `铜铃 · ${lv[4]} 级`), desc: L(`Every 2 bells clear ${lv[4]} enemy mark or paper seal anywhere.`, `每 2 个铜铃可清除场上任意 ${lv[4]} 个敌人标记或符咒。`) },
+    { draw: P(0, 'h'), title: L('Line blast · 4 in a row', '直线爆破 · 4 连'), desc: L('Clears the whole row or column the arrow points along.', '清除箭头方向的整行或整列。') },
+    { draw: P(1, 'bomb'), title: L('Lantern bomb · L or T shape', '灯笼炸弹 · L 形或 T 形'), desc: L('Blasts the 3×3 area around it.', '炸掉周围 3×3 的区域。') },
+    { draw: P(2, 'rocket'), title: L('Rocket · 2×2 square', '火箭 · 2×2 方块'), desc: L('Flies straight at a marked tile, seal or tombstone, or at the enemy.', '直接飞向被标记的方块、符咒、墓碑，或者敌人。') },
+    { draw: P(-1, 'rainbow'), title: L('Lucky ball · 5 in a row', '绣球 · 5 连'), desc: L('Swap it with a tile to clear every tile of that color.', '与一个方块交换，清除场上所有同色方块。') },
+    { draw: P(4, null, { mark: { type: 'fire' } }), title: L('Marked tiles', '标记方块'), desc: L('Enemy threats. Clear the tile before the countdown ends to cancel that part of the attack.', '敌人的威胁。在倒计时结束前消除这个方块，就能抵消这部分攻击。') },
+  ].map(c => ({ ...c, value: null, disabled: false, passive: true })), actions: [{ label: L('Back to the board', '回到棋盘') }] }; });
+}
+
+/* ---------- second chance: a 15-second clip break ---------- */
+const CLIPS = {
+  cat:      [{ id:'x-23OAaF2BQ', s:5 }, { id:'Y-kV3ODjnh4', s:5 }],
+  dog:      [{ id:'oVcrOUawoMg', s:5 }, { id:'jP4A3j5QMEc', s:5 }],
+  weeknd:   [{ id:'4NRXx6U8ABQ', s:60 }, { id:'XXYlFuWEuKI', s:45 }],
+  bts:      [{ id:'gdZLi9oWNZg', s:40 }, { id:'WMweEpGlu_U', s:40 }],
+  newjeans: [{ id:'11cta61wi0g', s:30 }, { id:'ArmDp-zijuc', s:40 }, { id:'pSUydWEqKwE', s:60 }, { id:'_ZAgIHmHLdc', s:40 }, { id:'js1CtxSY38I', s:35 }],
+};
+const canEmbed = /(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+async function offerRevive(kind) {
+  if (stage.tutorial) return true;
+  if (stage.revived) return false;
+  const go = await modal(() => ({
+    kicker: L('Second chance', '再来一次'), title: kind === 'battle' ? L('Bao is down!', '宝宝倒下了！') : L('Out of moves!', '步数用完了！'), portrait: PANDA_HURT,
+    text: kind === 'battle'
+      ? L('Take a 15-second break with a cute clip or a music video, and Bao gets back up with half HP. Free, no ads, once per fight.', '看一段 15 秒的萌宠视频或 MV，宝宝就能带着一半生命重新站起来。完全免费，没有广告，每场战斗一次。')
+      : L('Take a 15-second break with a clip and get 5 more moves. Once per trial.', '看一段 15 秒的视频，再获得 5 步。每次试炼一次。'),
+    cards: [
+      { seal: '猫', title: L('Cute cats', '萌猫'), desc: L('A kitten compilation.', '小猫合集。'), value: 'cat', sealClass: 'gold' },
+      { seal: '狗', title: L('Cute dogs', '萌狗'), desc: L('A puppy compilation.', '小狗合集。'), value: 'dog', sealClass: 'gold' },
+      { seal: '♪', title: 'The Weeknd', desc: 'Blinding Lights · Save Your Tears', value: 'weeknd', sealClass: 'violet' },
+      { seal: '♪', title: 'BTS 방탄소년단', desc: 'Dynamite · Butter', value: 'bts', sealClass: 'violet' },
+      { seal: '♪', title: 'NewJeans 뉴진스', desc: 'Hype Boy · Super Shy · Ditto · OMG · Attention', value: 'newjeans', sealClass: 'violet' },
+    ],
+    actions: [{ label: L('No thanks', '不用了'), value: 'no', quiet: true }],
+  }));
+  if (go === 'no') return false;
+  stage.revived = true;
+  await clipBreak(go);
+  return true;
+}
+function clipBreak(cat) {
+  return new Promise(res => {
+    const clip = pick(CLIPS[cat]), box = $('clipBox'), btn = $('clipGo'), link = $('clipLink');
+    link.href = `https://www.youtube.com/watch?v=${clip.id}&t=${clip.s}s`;
+    box.innerHTML = '';
+    if (canEmbed) {
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${clip.id}?start=${clip.s}&autoplay=1&playsinline=1&rel=0`;
+      f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.title = L('Clip break', '休息片段');
+      box.append(f); $('clipNote').hidden = true;
+    } else {
+      const c = document.createElement('canvas'); c.width = 200; c.height = 200; c.id = 'clipCan'; box.append(c);
+      $('clipNote').hidden = false;
+      $('clipNote').textContent = L('Videos play on the GitHub Pages version of the game. Here, Bao does a little victory dance instead.', '视频会在 GitHub Pages 版本中播放。在这里，由宝宝跳一支小舞代替。');
+    }
+    $('clipTitle').textContent = L('Take a breath', '喘口气');
+    link.textContent = L('Open on YouTube', '在 YouTube 打开');
+    $('clipOverlay').hidden = false;
+    let left = 15;
+    const tick = () => {
+      btn.disabled = left > 0;
+      btn.textContent = left > 0 ? L(`Back in ${left}s`, `${left} 秒后继续`) : L('Back to the fight', '回到战斗');
+      if (left-- > 0) setTimeout(tick, 1000);
+    };
+    tick();
+    btn.onclick = () => { if (btn.disabled) return; box.innerHTML = ''; $('clipOverlay').hidden = true; sfx(784, 0.2); res(); };
+  });
+}
+
+/* ---------- beginner tutorial: a guided fight ---------- */
+let tut = null, tutCells = null;
+function tutorialSteps() {
+  return [
+    { target: 'boardWrap', wait: 'move', cells: () => findMove(),
+      text: L('Swap two neighboring tiles to line up 3 of the same kind. Drag a tile onto its neighbor, or tap one tile and then the other. Try the glowing pair.',
+              '交换两个相邻的方块，让 3 个相同的方块连成一线。把方块拖到旁边，或者先后点击两个方块。试试发光的那一对。') },
+    { target: 'pCard', next: true,
+      text: L('Every match powers Bao. Red firecrackers hit the enemy, green jade adds shield, pink peaches heal, gold gives coins and chi, purple bells clear enemy marks.',
+              '每次消除都会帮助宝宝。红色鞭炮攻击敌人，绿色玉璧增加护盾，粉色寿桃回复生命，金色元宝提供金币和气，紫色铜铃清除敌人的标记。') },
+    { target: 'intent', next: true,
+      text: L("This bubble is the enemy's next move. The number on the right is how many of your moves are left before it acts.",
+              '这个气泡是敌人的下一步行动。右边的数字表示它还要等你走几步才会行动。') },
+    { target: 'boardWrap', wait: 'move', cells: () => allPieces().filter(p => p.mark).map(p => ({ c: p.c, r: p.r })),
+      text: L('Glowing rings are enemy marks. Clear a marked tile before the countdown ends and that part of its attack fails. Clear one now.',
+              '发光圆环是敌人的标记。在倒计时结束前消除被标记的方块，它这部分攻击就会失效。现在消除一个吧。') },
+    { target: 'boardWrap', wait: 'move', setup: () => { const p = allPieces().find(q => isPlainGem(q) && !q.mark); if (p) { p.sp = 'rocket'; p.pulse = 1; return [{ c: p.c, r: p.r }]; } return null; },
+      text: L('Match 4 in a row, an L or T shape, a 2×2 square, or 5 in a row to make a special tile. Here is a free rocket: tap it twice to launch it.',
+              '4 连、L 形或 T 形、2×2 方块、5 连都能做出特殊方块。送你一枚火箭：连点两下发射它。') },
+    { target: 'tools', next: true,
+      text: L('Boosters: the Hammer smashes one tile, Free swap needs no match, the Lantern makes a bomb. Gold fills chi for the Kung Fu Palm, a big hit.',
+              '道具：锤子砸碎一个方块，自由交换不需要消除，灯笼能做出炸弹。元宝积攒的气可以放出功夫掌，造成大量伤害。') },
+    { target: null, next: true, last: true,
+      text: L('Now finish off the ghost. In a real run you pick a road at each lantern, earn relics, and lantern flames bring you back if you fall. Tap ? any time for help.',
+              '现在打败这只饿鬼吧。正式游戏中，你会在每盏灯前选择道路、获得法宝；倒下时，灯火能让你重来。随时点 ? 查看帮助。') },
+  ];
+}
+function coachShow() {
+  document.querySelectorAll('.coach-target').forEach(e => e.classList.remove('coach-target'));
+  if (!tut) { $('coach').hidden = true; tutCells = null; return; }
+  const s = tut.steps[tut.i];
+  if (!s.shown) { s.shown = true; s.cellList = s.setup ? s.setup() : s.cells ? s.cells() : null; }
+  tutCells = s.cellList && s.cellList.length ? s.cellList : null;
+  $('coachText').textContent = tutorialSteps()[tut.i].text;
+  $('coachStep').textContent = `${tut.i + 1} / ${tut.steps.length}`;
+  $('coachNext').hidden = !s.next;
+  $('coachNext').textContent = s.last ? L("Let's go", '开始吧') : L('Next', '下一步');
+  $('coachSkip').textContent = L('Skip tutorial', '跳过教学');
+  const el = s.target && $(s.target);
+  if (el) el.classList.add('coach-target');
+  const c = $('coach'); c.hidden = false;
+  const r = el ? el.getBoundingClientRect() : null;
+  c.classList.toggle('top', !!r && r.top > window.innerHeight * 0.45);
+  if (el && el.id !== 'boardWrap') el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function tutAdvance() {
+  if (!tut) return;
+  tut.i++;
+  if (tut.i >= tut.steps.length) { tut = null; coachShow(); return; }
+  coachShow();
+}
+function tutEvent(name) { if (tut && tut.steps[tut.i].wait === name) setTimeout(tutAdvance, 500); }
+$('coachNext').onclick = () => tutAdvance();
+$('coachSkip').onclick = () => { tut = null; coachShow(); if (stage && stage.tutorial && !stage.over) endStage('win'); };
+async function tutorial() {
+  const meta = loadMeta();
+  run = freshRun(0, meta); hero = freshHero(meta); hero.max = hero.hp = 80; run.flames = 0; relicCount = -1;
+  enemy = makeEnemy('egui', false); enemy.hp = enemy.max = 36;
+  const p = playStage({ type: 'battle', kind: 'battle', tutorial: true }, {}, () => nextIntent(true));
+  setLog(L('Tutorial: follow the tips.', '新手教学：跟着提示操作。'));
+  renderHUD();
+  while (busy) await sleep(100);
+  tut = { i: 0, steps: tutorialSteps() };
+  coachShow();
+  await p;
+  tut = null; coachShow();
+  meta.tutDone = true; saveMeta(meta);
+  await modal(() => ({ kicker: L('Tutorial complete', '教学完成'), title: L("You're ready", '准备好了'), portrait: PANDA,
+    text: L('Step through the Ghost Gate and bring Grandma home. Good luck, lantern keeper.', '踏入鬼门，把奶奶带回家吧。祝你好运，守灯人。'),
+    actions: [{ label: L('Back to the gate', '回到鬼门') }] }));
+  return mainMenu();
 }
 
 /* ================= modal ================= */
-function modal({ kicker = '', title, text = '', story = false, cards = [], actions = [], portrait = null }) {
+// A modal spec may be a function, so the open modal can re-render when the language changes.
+let curModal = null;
+function modal(spec) {
   return new Promise(res => {
-    $('mKicker').textContent = kicker; $('mKicker').hidden = !kicker;
-    $('mTitle').textContent = title;
-    const p = $('mText'); p.textContent = text; p.hidden = !text; p.className = story ? 'story' : '';
-    p.style.whiteSpace = 'pre-line';
-    const wrap = $('mCards'); wrap.innerHTML = ''; wrap.hidden = !cards.length;
-    const close = v => { $('overlay').hidden = true; res(v); };
-    for (const cd of cards) {
-      const b = document.createElement(cd.passive ? 'div' : 'button'); b.className = 'card' + (cd.passive ? ' passive' : ''); b.disabled = !!cd.disabled;
-      let seal;
-      if (cd.draw) { seal = document.createElement('canvas'); seal.width = 76; seal.height = 76; seal.className = 'cicon'; const c = seal.getContext('2d'); c.translate(38, 38); cd.draw(c); }
-      else { seal = document.createElement('span'); seal.className = 'seal ' + (cd.sealClass || ''); seal.textContent = cd.seal; }
-      const body = document.createElement('span'); body.className = 'c-body';
-      const t = document.createElement('span'); t.className = 'c-title'; t.textContent = cd.title;
-      const d = document.createElement('span'); d.className = 'c-desc'; d.textContent = cd.desc;
-      body.append(t, d); b.append(seal, body);
-      if (cd.tag != null) { const tag = document.createElement('span'); tag.className = 'c-tag'; if (cd.coinTag) { const c = document.createElement('i'); c.className = 'coin'; tag.append(c); } tag.append(String(cd.tag)); b.append(tag); }
-      if (!cd.passive) b.onclick = () => { sfx(700, 0.06); close(cd.value !== undefined ? cd.value : cd); };
-      wrap.append(b);
-    }
-    const act = $('mActions'); act.innerHTML = ''; act.hidden = !actions.length;
-    for (const a of actions) {
-      const b = document.createElement('button'); b.className = 'btn' + (a.quiet ? ' quiet' : ''); b.textContent = a.label;
-      b.onclick = () => close(a.value !== undefined ? a.value : a.label);
-      act.append(b);
-    }
-    modalPortrait = portrait; $('mCan').hidden = !portrait;
+    curModal = { get: typeof spec === 'function' ? spec : () => spec, res };
+    renderModal();
     $('overlay').hidden = false;
     const first = $('overlay').querySelector('button:not(:disabled)'); if (first) first.focus({ preventScroll: true });
   });
+}
+function renderModal() {
+  if (!curModal) return;
+  const { kicker = '', title, text = '', story = false, cards = [], actions = [], portrait = null } = curModal.get();
+  $('mKicker').textContent = kicker; $('mKicker').hidden = !kicker;
+  $('mTitle').textContent = title;
+  const p = $('mText'); p.textContent = text; p.hidden = !text; p.className = story ? 'story' : '';
+  p.style.whiteSpace = 'pre-line';
+  const wrap = $('mCards'); wrap.innerHTML = ''; wrap.hidden = !cards.length;
+  const close = v => { const r = curModal.res; curModal = null; $('overlay').hidden = true; r(v); };
+  for (const cd of cards) {
+    const b = document.createElement(cd.passive ? 'div' : 'button'); b.className = 'card' + (cd.passive ? ' passive' : ''); b.disabled = !!cd.disabled;
+    let seal;
+    if (cd.draw) { seal = document.createElement('canvas'); seal.width = 76; seal.height = 76; seal.className = 'cicon'; const c = seal.getContext('2d'); c.translate(38, 38); cd.draw(c); }
+    else { seal = document.createElement('span'); seal.className = 'seal ' + (cd.sealClass || ''); seal.textContent = cd.seal; }
+    const body = document.createElement('span'); body.className = 'c-body';
+    const t = document.createElement('span'); t.className = 'c-title'; t.textContent = cd.title;
+    const d = document.createElement('span'); d.className = 'c-desc'; d.textContent = cd.desc;
+    body.append(t, d); b.append(seal, body);
+    if (cd.tag != null) { const tag = document.createElement('span'); tag.className = 'c-tag'; if (cd.coinTag) { const c = document.createElement('i'); c.className = 'coin'; tag.append(c); } tag.append(String(cd.tag)); b.append(tag); }
+    if (!cd.passive) b.onclick = () => { sfx(700, 0.06); close(cd.value !== undefined ? cd.value : cd); };
+    wrap.append(b);
+  }
+  const act = $('mActions'); act.innerHTML = ''; act.hidden = !actions.length;
+  for (const a of actions) {
+    const b = document.createElement('button'); b.className = 'btn' + (a.quiet ? ' quiet' : ''); b.textContent = a.label;
+    b.onclick = () => close(a.value !== undefined ? a.value : a.label);
+    act.append(b);
+  }
+  modalPortrait = portrait; $('mCan').hidden = !portrait;
 }
 
 /* ================= HUD ================= */
@@ -1535,14 +1771,36 @@ function floatText(card, text, kind) {
 function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
 function wobble(p) { p.pulse = 0.6; sfx(150, 0.08, 'square', 0.03); }
 
+function applyStatic() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
+  document.title = L('The Lantern Keeper', '守灯人');
+  $('lang').textContent = L('中', 'EN');
+  $('lang').setAttribute('aria-label', L('Switch to Chinese', '切换到英文'));
+  $('help').setAttribute('aria-label', L('How to play', '玩法说明'));
+  $('lHammer').textContent = L('Hammer', '锤子');
+  $('lSwap').textContent = L('Free swap', '自由交换');
+  $('lLantern').textContent = L('Lantern', '灯笼');
+  $('lPalm').textContent = L('Kung Fu Palm', '功夫掌');
+  $('lMoves').textContent = L('Moves', '步数');
+  $('pName').firstChild.textContent = L('Bao 宝宝 ', '宝宝 ');
+}
+$('lang').addEventListener('click', () => {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  store('lk_lang', lang);
+  applyStatic(); relicCount = -1;
+  if (stage && stage.type === 'challenge' && stage.tpl) buildGoals();
+  renderHUD(); renderModal(); coachShow();
+  setLog(L('Language: English', '语言：中文'));
+});
+
 let relicCount = -1;
 function renderRelics() {
   const el = $('relics'); el.innerHTML = ''; relicCount = run.relics.length;
-  if (!run.relics.length) { const s = document.createElement('span'); s.className = 'empty'; s.textContent = 'No relics yet. Guardians and trials reward them.'; el.append(s); return; }
+  if (!run.relics.length) { const s = document.createElement('span'); s.className = 'empty'; s.textContent = L('No relics yet. Guardians and trials reward them.', '还没有法宝。守关者和试炼会给予奖励。'); el.append(s); return; }
   for (const id of run.relics) {
-    const R = RELICS[id], b = document.createElement('button'); b.className = 'relic'; b.title = R.desc;
+    const R = RELICS[id], b = document.createElement('button'); b.className = 'relic'; b.title = tx(R, 'desc');
     const s = document.createElement('span'); s.className = 'seal gold'; s.textContent = R.cn[0];
-    b.append(s, R.name); b.onclick = () => setLog(`${R.name} ${R.cn}: ${R.desc}`);
+    b.append(s, lang === 'zh' ? R.zh : R.name); b.onclick = () => setLog(L(`${R.name} ${R.cn}: ${R.desc}`, `${R.zh}：${R.descZh}`));
     el.append(b);
   }
 }
@@ -1556,16 +1814,16 @@ function renderPath(curFloor) {
     else if (i === 3 || i === 7) { txt = '凶'; cls += ' fixed'; }
     else if (i === FLOORS - 1) { txt = '冥'; cls += ' fixed'; }
     if (i === cur && i >= run.path.length) cls += ' now';
-    s.className = cls; s.textContent = txt; s.title = `Lantern ${i + 1}`;
+    s.className = cls; s.textContent = txt; s.title = L(`Lantern ${i + 1}`, `第 ${i + 1} 盏灯`);
   });
   const f = Math.min(FLOORS, curFloor || run.floor);
-  $('actName').textContent = [...ACTS].reverse().find(a => f >= a.from).name;
-  $('dread').textContent = `${run.flames} flame${run.flames === 1 ? '' : 's'} left${run.dread ? ` · Dread ${run.dread}` : ''}`;
+  $('actName').textContent = tx([...ACTS].reverse().find(a => f >= a.from), 'name');
+  $('dread').textContent = L(`${run.flames} flame${run.flames === 1 ? '' : 's'} left${run.dread ? ` · Dread ${run.dread}` : ''}`, `剩余 ${run.flames} 盏灯火${run.dread ? ` · 惧意 ${run.dread}` : ''}`);
 }
 function buildGoals() {
   $('gTitle').innerHTML = '';
-  $('gTitle').append(`${stage.name} ${stage.cn}`);
-  const sm = document.createElement('small'); sm.textContent = stage.desc; $('gTitle').append(sm);
+  $('gTitle').append(full(stage.tpl));
+  const sm = document.createElement('small'); sm.textContent = tx(stage.tpl, 'desc'); $('gTitle').append(sm);
   const wrap = $('goals'); wrap.innerHTML = '';
   for (const g of stage.goals) {
     const d = document.createElement('div'); d.className = 'goal';
@@ -1580,16 +1838,16 @@ function renderHUD(pathFloor) {
   $('coins').textContent = run.coins;
   $('pFill').style.width = (hero.hp / hero.max * 100) + '%';
   $('pTxt').textContent = `${hero.hp} / ${hero.max}`;
-  $('pLv').textContent = `Level ${hero.level}`;
+  $('pLv').textContent = L(`Level ${hero.level}`, `等级 ${hero.level}`);
   $('pXp').style.width = Math.min(100, hero.xp / xpNeed() * 100) + '%';
-  $('pShield').textContent = `Shield ${hero.shield}`;
+  $('pShield').textContent = L(`Shield ${hero.shield}`, `护盾 ${hero.shield}`);
   $('pShield').classList.toggle('off', hero.shield <= 0);
   if (enemy && !$('eCard').hidden) {
-    $('eName').innerHTML = ''; $('eName').append(`${enemy.name} ${enemy.cn}`);
-    const sm = document.createElement('small'); sm.textContent = enemy.title; $('eName').append(sm);
+    $('eName').innerHTML = ''; $('eName').append(full(enemy));
+    const sm = document.createElement('small'); sm.textContent = tx(enemy, 'title'); $('eName').append(sm);
     $('eFill').style.width = (enemy.hp / enemy.max * 100) + '%';
     $('eTxt').textContent = `${enemy.hp} / ${enemy.max}`;
-    $('eGuard').hidden = enemy.guard <= 0; $('eGuard').textContent = `Guard ${enemy.guard}`;
+    $('eGuard').hidden = enemy.guard <= 0; $('eGuard').textContent = L(`Guard ${enemy.guard}`, `防御 ${enemy.guard}`);
     const it = enemy.intent;
     $('intent').dataset.kind = it.k; $('iLabel').textContent = intentLabel(it); $('iTurns').textContent = it.t;
     $('intent').classList.toggle('soon', it.t <= 1);
@@ -1612,7 +1870,9 @@ function renderHUD(pathFloor) {
   $('palm').disabled = !(ready && free);
   $('palm').classList.toggle('ready', ready && !!free);
   $('palmFill').style.width = Math.min(100, hero.chi / hero.chiMax * 100) + '%';
-  $('palmTxt').textContent = ready ? (stage && stage.type === 'challenge' ? 'Smash 8 goal tiles' : `${hero.palm} dmg, clears marks`) : `${hero.chi} / ${hero.chiMax} chi`;
+  $('palmTxt').textContent = ready
+    ? (stage && stage.type === 'challenge' ? L('Smash 8 goal tiles', '砸碎 8 个目标') : L(`${hero.palm} dmg, clears marks`, `${hero.palm} 伤害，清除标记`))
+    : L(`${hero.chi} / ${hero.chiMax} chi`, `气 ${hero.chi} / ${hero.chiMax}`);
   if (relicCount !== run.relics.length) renderRelics();
   renderPath(pathFloor);
 }
@@ -1655,19 +1915,19 @@ board.addEventListener('pointerup', () => {
   } else {
     selected = cell; sfx(800, 0.04, 'sine', 0.03);
     const p = grid[cell.r][cell.c];
-    if (p && p.kind === 'gem' && p.sp && mode !== 'swap') setLog('Tap it again to fire it, or swap it with a neighbor.');
+    if (p && p.kind === 'gem' && p.sp && mode !== 'swap') setLog(L('Tap it again to fire it, or swap it with a neighbor.', '再点一次即可引爆，或与相邻方块交换。'));
   }
 });
 board.addEventListener('pointercancel', () => { drag = null; });
 function toggleMode(m, help) {
   if (!canPlay() && mode !== m) return;
-  if (mode === m) { mode = null; setLog('Booster put away.'); }
+  if (mode === m) { mode = null; setLog(L('Booster put away.', '道具已收起。')); }
   else if (run.items[m] > 0) { mode = m; selected = null; setLog(help); }
   renderHUD();
 }
-$('tHammer').onclick = () => toggleMode('hammer', 'Tap any tile to smash it. Tap Hammer again to cancel.');
-$('tSwap').onclick = () => toggleMode('swap', 'Swap any two neighbors, no match needed. Costs no move.');
-$('tLantern').onclick = () => toggleMode('lantern', 'Tap a tile to turn it into a lantern bomb.');
+$('tHammer').onclick = () => toggleMode('hammer', L('Tap any tile to smash it. Tap Hammer again to cancel.', '点击任意方块将其砸碎。再点一次锤子即可取消。'));
+$('tSwap').onclick = () => toggleMode('swap', L('Swap any two neighbors, no match needed. Costs no move.', '交换任意两个相邻方块，无需消除，不消耗步数。'));
+$('tLantern').onclick = () => toggleMode('lantern', L('Tap a tile to turn it into a lantern bomb.', '点击一个方块，把它变成灯笼炸弹。'));
 $('palm').onclick = palm;
 
 /* ================= drawing: tiles ================= */
@@ -1964,6 +2224,11 @@ function drawBoard() {
       ctx.globalAlpha = 0.22 + 0.1 * Math.sin(T * 5); ctx.fillStyle = MARK[p.mark.type].col; ctx.fill(); ctx.globalAlpha = 1;
     }
   }
+  if (tutCells) {
+    ctx.save(); ctx.strokeStyle = `rgba(255,214,120,${0.55 + 0.4 * Math.sin(T * 6)})`; ctx.lineWidth = 4;
+    for (const t of tutCells) { rrect(ctx, t.c * s + 1, t.r * s + 1, s - 2, s - 2, s * 0.24); ctx.stroke(); }
+    ctx.restore();
+  }
   if (selected) {
     rrect(ctx, selected.c * s + 2, selected.r * s + 2, s - 4, s - 4, s * 0.22);
     ctx.lineWidth = 3; ctx.strokeStyle = `rgba(240,184,74,${0.6 + Math.sin(T * 8) * 0.3})`; ctx.stroke();
@@ -2011,7 +2276,7 @@ function drawBoard() {
   for (const p of pops) {
     const grow = p.life > 0.85 ? 1 + (p.life - 0.85) * 2 : 1;
     ctx.globalAlpha = Math.min(1, p.life * 2);
-    ctx.font = `${Math.round(s * p.size * grow)}px "ZCOOL XiaoWei", Georgia, serif`;
+    ctx.font = `${Math.round(s * p.size * grow)}px "ZCOOL XiaoWei", "Noto Sans SC", Georgia, serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     ctx.lineWidth = s * 0.14; ctx.strokeStyle = '#120e18'; ctx.strokeText(p.text, p.x * s, p.y * s);
     ctx.fillStyle = p.color; ctx.fillText(p.text, p.x * s, p.y * s);
@@ -2220,12 +2485,15 @@ function frame(now) {
       if (modalPortrait.who === 'enemy' && enemy) drawEnemy(mctx, enemy, T, modalPortrait.hurt);
       else drawPanda(mctx, T, 0, 0, modalPortrait.mood || 'happy');
     }
+    const cc = document.getElementById('clipCan');
+    if (cc && !$('clipOverlay').hidden) drawPanda(cc.getContext('2d'), T * 2.5, 0, (T % 1.2) < 0.6 ? 0.3 : 0, 'happy');
   }
   requestAnimationFrame(frame);
 }
 
 resize();
 requestAnimationFrame(frame);
+applyStatic();
 mainMenu();
 })();
 </script>
