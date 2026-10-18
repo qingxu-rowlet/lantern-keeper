@@ -139,7 +139,8 @@ h1{font-family:var(--brush); font-weight:400; font-size:2rem; margin:0; color:va
 @keyframes wiggle{0%,70%,100%{transform:rotate(0)}78%{transform:rotate(-3deg)}86%{transform:rotate(3deg)}94%{transform:rotate(-1deg)}}
 .log{margin:0; text-align:center; font-weight:700; min-height:2.7em; font-size:.84rem; line-height:1.4; text-wrap:balance}
 .card.passive{cursor:default; padding-block:6px}
-.lang-btn{font-family:var(--brush); font-size:1rem}
+.lang-btn{font-family:var(--brush); font-size:1rem; position:relative; z-index:13}
+.lang-btn.nudge{border-color:var(--gold); color:var(--gold); box-shadow:0 0 0 3px rgba(240,184,74,.35); animation:throb .7s ease-in-out infinite alternate}
 :root[lang="zh-Hans"] .brand-en{display:none}
 :root[lang="zh-Hans"] body{font-family:"Noto Sans SC",var(--body)}
 .coach{position:fixed; z-index:8; left:50%; transform:translateX(-50%); bottom:max(14px, env(safe-area-inset-bottom, 0px)); width:min(440px, calc(100% - 24px));
@@ -1253,7 +1254,7 @@ async function mainMenu() {
   run = freshRun(0, meta); hero = freshHero(meta); relicCount = -1;
   previewEnemy('egui'); renderHUD();
   const v = await modal(() => {
-    const cards = [];
+    const cards = [{ seal: L('中', 'EN'), title: L('切换到中文', 'Switch to English'), desc: L('Play the whole game in Chinese. You can also tap 中 at the top any time.', '整个游戏切换为英文。也可以随时点击顶部的 EN。'), value: 'lang', sealClass: 'gold' }];
     if (!meta.tutDone) cards.push({ seal: '教', title: L('New here? Learn to play', '新手？先学玩法'), desc: L('A short guided fight against a hungry ghost.', '跟着引导，和饿鬼打一场简单的战斗。'), value: 'tutorial', sealClass: 'violet' });
     if (save && save.run) cards.push({ seal: '续', title: L('Continue the night', '继续今夜'), desc: L(`Lantern ${save.run.floor} of ${FLOORS}, level ${save.hero.level}, ${save.run.flames} flame${save.run.flames === 1 ? '' : 's'} left.`, `第 ${save.run.floor}/${FLOORS} 盏灯，等级 ${save.hero.level}，剩余 ${save.run.flames} 盏灯火。`), value: 'continue', sealClass: 'gold' });
     cards.push({ seal: '夜', title: save ? L('Start a new night', '开始新的一夜') : L('Step through the gate', '踏入鬼门'), desc: save ? L('Abandons the saved run.', '放弃已保存的进度。') : L('The standard descent.', '标准难度。'), value: 0, sealClass: 'ink' });
@@ -1264,6 +1265,7 @@ async function mainMenu() {
       text: meta.seenPrologue ? L("The gate stands open. Grandma's lantern is still out there.", '鬼门大开。奶奶的灯笼还在外面。') : tx(STORY, 'prologue'), story: !meta.seenPrologue, portrait: PANDA, cards };
   });
   if (!meta.seenPrologue) { meta.seenPrologue = true; saveMeta(meta); }
+  if (v === 'lang') { setLang(lang === 'zh' ? 'en' : 'zh'); return mainMenu(); }
   if (v === 'hall') { await hall(); return mainMenu(); }
   if (v === 'tutorial') return tutorial();
   if (v === 'continue') { run = save.run; hero = save.hero; lastEnemy = save.lastEnemy; relicCount = -1; renderHUD(); return runLoop(); }
@@ -1784,14 +1786,17 @@ function applyStatic() {
   $('lMoves').textContent = L('Moves', '步数');
   $('pName').firstChild.textContent = L('Bao 宝宝 ', '宝宝 ');
 }
-$('lang').addEventListener('click', () => {
-  lang = lang === 'zh' ? 'en' : 'zh';
+function setLang(next) {
+  lang = next;
   store('lk_lang', lang);
+  $('lang').classList.remove('nudge');
   applyStatic(); relicCount = -1;
   if (stage && stage.type === 'challenge' && stage.tpl) buildGoals();
   renderHUD(); renderModal(); coachShow();
   setLog(L('Language: English', '语言：中文'));
-});
+}
+$('lang').addEventListener('click', () => setLang(lang === 'zh' ? 'en' : 'zh'));
+if (store('lk_lang') == null) $('lang').classList.add('nudge');
 
 let relicCount = -1;
 function renderRelics() {
